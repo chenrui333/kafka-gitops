@@ -56,6 +56,9 @@ jobs:
         with:
           draft: true
           tag_name: ${{ steps.release_target.outputs.version }}
+          name: Release ${{ steps.release_target.outputs.version }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
           files: ./build/distributions/kafka-gitops.zip
 
       - name: Log in to Docker Hub
@@ -74,3 +77,10 @@ jobs:
           tags: |
             devshawn/kafka-gitops:${{ steps.release_target.outputs.version }}
             devshawn/kafka-gitops:latest
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2.6.1
+        with:
+          tag_name: ${{ steps.release_target.outputs.version }}
+          name: Release ${{ steps.release_target.outputs.version }}
+          make_latest: "true"
