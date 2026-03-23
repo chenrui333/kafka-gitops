@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - "*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing git tag to release
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -17,7 +23,23 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
     steps:
+      - name: Resolve release target
+        id: release_target
+        run: |
+          version="${GITHUB_REF#refs/tags/}"
+          ref="${GITHUB_REF}"
+
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            version="${{ inputs.tag }}"
+            ref="refs/tags/${version}"
+          fi
+
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "ref=${ref}" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v6.0.2
+        with:
+          ref: ${{ steps.release_target.outputs.ref }}
 
       - name: Set up JDK 21
         uses: actions/setup-java@v5.2.0
@@ -29,14 +51,11 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew buildRelease
 
-      - name: Get the version
-        id: get_version
-        run: echo "version=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
-
       - name: Create draft release
         uses: softprops/action-gh-release@v2.6.1
         with:
           draft: true
+          tag_name: ${{ steps.release_target.outputs.version }}
           files: ./build/distributions/kafka-gitops.zip
 
       - name: Log in to Docker Hub
@@ -53,5 +72,5 @@ jobs:
           context: .
           push: true
           tags: |
-            devshawn/kafka-gitops:${{ steps.get_version.outputs.version }}
+            devshawn/kafka-gitops:${{ steps.release_target.outputs.version }}
             devshawn/kafka-gitops:latest
