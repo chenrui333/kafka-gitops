@@ -61,7 +61,7 @@ public class StateManager {
         initializeLogger(managerConfig.isVerboseRequested());
         this.managerConfig = managerConfig;
         this.objectMapper = initializeObjectMapper();
-        KafkaGitopsConfig config = KafkaGitopsConfigLoader.load();
+        KafkaGitopsConfig config = KafkaGitopsConfigLoader.load(managerConfig.getConfigFile().orElse(null));
         this.kafkaService = new KafkaService(config);
         this.parserService = parserService;
         this.roleService = new RoleService();
