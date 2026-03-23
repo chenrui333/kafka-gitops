@@ -56,7 +56,7 @@ class CustomAclDetailsSpec extends Specification {
         InvalidAclDefinitionException ex = thrown(InvalidAclDefinitionException)
         ex.getField() == "type"
         ex.getValue() == input
-        ex.getAllowedValues() == ["TOPIC", "GROUP", "CLUSTER", "TRANSACTIONAL_ID", "DELEGATION_TOKEN"]
+        ex.getAllowedValues() == ["TOPIC", "GROUP", "CLUSTER", "TRANSACTIONAL_ID", "DELEGATION_TOKEN", "USER"]
 
         where:
         input << ["ANY", "UNKNOWN", "not real", "PREFIX", "prefixed", "topic"]
@@ -106,7 +106,7 @@ class CustomAclDetailsSpec extends Specification {
         InvalidAclDefinitionException ex = thrown(InvalidAclDefinitionException)
         ex.getField() == "operation"
         ex.getValue() == input
-        ex.getAllowedValues() == ["ALL", "READ", "WRITE", "CREATE", "DELETE", "ALTER", "DESCRIBE", "CLUSTER_ACTION", "DESCRIBE_CONFIGS", "ALTER_CONFIGS", "IDEMPOTENT_WRITE"]
+        ex.getAllowedValues() == ["ALL", "READ", "WRITE", "CREATE", "DELETE", "ALTER", "DESCRIBE", "CLUSTER_ACTION", "DESCRIBE_CONFIGS", "ALTER_CONFIGS", "IDEMPOTENT_WRITE", "CREATE_TOKENS", "DESCRIBE_TOKENS"]
 
         where:
         input << ["ANY", "UNKNOWN", "not real", "PREFIX", "prefixed", "topic"]

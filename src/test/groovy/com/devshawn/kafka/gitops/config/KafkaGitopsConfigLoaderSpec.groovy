@@ -2,30 +2,16 @@ package com.devshawn.kafka.gitops.config
 
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.common.config.SaslConfigs
-import org.junit.ClassRule
-import org.junit.contrib.java.lang.system.EnvironmentVariables
-import spock.lang.Shared
 import spock.lang.Specification
 
 class KafkaGitopsConfigLoaderSpec extends Specification {
 
-    @Shared
-    @ClassRule
-    EnvironmentVariables environmentVariables
-
-    void setupSpec() {
-        environmentVariables.set("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
-        environmentVariables.set("KAFKA_SASL_MECHANISM", "PLAIN")
-        environmentVariables.set("KAFKA_SECURITY_PROTOCOL", "SASL_PLAINTEXT")
-    }
-
     void 'test username and password shortcut'() {
-        setup:
-        environmentVariables.set("KAFKA_SASL_JAAS_USERNAME", "test")
-        environmentVariables.set("KAFKA_SASL_JAAS_PASSWORD", "test-secret")
-
         when:
-        KafkaGitopsConfig config = KafkaGitopsConfigLoader.load()
+        KafkaGitopsConfig config = KafkaGitopsConfigLoader.load(null, testEnvironment([
+                KAFKA_SASL_JAAS_USERNAME: 'test',
+                KAFKA_SASL_JAAS_PASSWORD: 'test-secret',
+        ]))
 
         then:
         config
@@ -33,12 +19,11 @@ class KafkaGitopsConfigLoaderSpec extends Specification {
     }
 
     void 'test escaping username and password shortcut'() {
-        setup:
-        environmentVariables.set("KAFKA_SASL_JAAS_USERNAME", "te\"st")
-        environmentVariables.set("KAFKA_SASL_JAAS_PASSWORD", "te\"st-secr\"et")
-
         when:
-        KafkaGitopsConfig config = KafkaGitopsConfigLoader.load()
+        KafkaGitopsConfig config = KafkaGitopsConfigLoader.load(null, testEnvironment([
+                KAFKA_SASL_JAAS_USERNAME: 'te"st',
+                KAFKA_SASL_JAAS_PASSWORD: 'te"st-secr"et',
+        ]))
 
         then:
         config
@@ -58,4 +43,11 @@ class KafkaGitopsConfigLoaderSpec extends Specification {
         config.config.get(SaslConfigs.SASL_MECHANISM) == "PLAIN"
     }
 
+    private static Map<String, String> testEnvironment(Map<String, String> overrides = [:]) {
+        return [
+                KAFKA_BOOTSTRAP_SERVERS: 'localhost:9092',
+                KAFKA_SASL_MECHANISM   : 'PLAIN',
+                KAFKA_SECURITY_PROTOCOL: 'SASL_PLAINTEXT',
+        ] + overrides
+    }
 }

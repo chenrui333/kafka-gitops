@@ -1,94 +1,120 @@
-version: '2.1'
-
 services:
   zoo1:
-    image: zookeeper:3.4.9
+    image: confluentinc/cp-zookeeper:7.9.1
     hostname: zoo1
     ports:
       - "2181:2181"
     environment:
-      ZOO_MY_ID: 1
-      ZOO_PORT: 2181
-      ZOO_SERVERS: server.1=zoo1:2888:3888
-    volumes:
-      - ./data/zoo1/data:/data
-      - ./data/zoo1/datalog:/datalog
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
 
   kafka1:
-    image: confluentinc/cp-kafka:5.5.3
+    image: confluentinc/cp-kafka:7.9.1
     hostname: kafka1
     ports:
       - "9092:9092"
+    command:
+      - bash
+      - -lc
+      - |
+        cat >/etc/kafka/kafka_server_jaas.conf <<'EOF'
+        KafkaServer {
+          org.apache.kafka.common.security.plain.PlainLoginModule required
+          username="kafka"
+          password="kafka-secret"
+          user_test="test-secret"
+          user_kafka="kafka-secret";
+        };
+        EOF
+        /etc/confluent/docker/run
     environment:
       KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka1:19092,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:SASL_PLAINTEXT,LISTENER_DOCKER_EXTERNAL:SASL_PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
       KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
       KAFKA_BROKER_ID: 1
-      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf"
+      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf -Dzookeeper.sasl.client=false"
       KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
       KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
       ZOOKEEPER_SASL_ENABLED: "false"
-      KAFKA_AUTHORIZER_CLASS_NAME: "kafka.security.auth.SimpleAclAuthorizer"
+      KAFKA_AUTHORIZER_CLASS_NAME: "kafka.security.authorizer.AclAuthorizer"
       KAFKA_SUPER_USERS: "User:test;User:kafka"
       KAFKA_CONFLUENT_SUPPORT_METRICS_ENABLE: "false"
-    volumes:
-      - ./data/kafka1/data:/var/lib/kafka/data
-      - ./config/kafka_server_jaas.conf:/etc/kafka/kafka_server_jaas.conf
     depends_on:
       - zoo1
 
   kafka2:
-    image: confluentinc/cp-kafka:5.5.3
+    image: confluentinc/cp-kafka:7.9.1
     hostname: kafka2
     ports:
       - "9093:9093"
+    command:
+      - bash
+      - -lc
+      - |
+        cat >/etc/kafka/kafka_server_jaas.conf <<'EOF'
+        KafkaServer {
+          org.apache.kafka.common.security.plain.PlainLoginModule required
+          username="kafka"
+          password="kafka-secret"
+          user_test="test-secret"
+          user_kafka="kafka-secret";
+        };
+        EOF
+        /etc/confluent/docker/run
     environment:
       KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka2:19092,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9093
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:SASL_PLAINTEXT,LISTENER_DOCKER_EXTERNAL:SASL_PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
       KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
       KAFKA_BROKER_ID: 2
-      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf"
+      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf -Dzookeeper.sasl.client=false"
       KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
       KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
       ZOOKEEPER_SASL_ENABLED: "false"
-      KAFKA_AUTHORIZER_CLASS_NAME: "kafka.security.auth.SimpleAclAuthorizer"
+      KAFKA_AUTHORIZER_CLASS_NAME: "kafka.security.authorizer.AclAuthorizer"
       KAFKA_SUPER_USERS: "User:test;User:kafka"
       KAFKA_CONFLUENT_SUPPORT_METRICS_ENABLE: "false"
-    volumes:
-      - ./data/kafka2/data:/var/lib/kafka/data
-      - ./config/kafka_server_jaas.conf:/etc/kafka/kafka_server_jaas.conf
     depends_on:
       - zoo1
 
   kafka3:
-    image: confluentinc/cp-kafka:5.5.3
+    image: confluentinc/cp-kafka:7.9.1
     hostname: kafka3
     ports:
       - "9094:9094"
+    command:
+      - bash
+      - -lc
+      - |
+        cat >/etc/kafka/kafka_server_jaas.conf <<'EOF'
+        KafkaServer {
+          org.apache.kafka.common.security.plain.PlainLoginModule required
+          username="kafka"
+          password="kafka-secret"
+          user_test="test-secret"
+          user_kafka="kafka-secret";
+        };
+        EOF
+        /etc/confluent/docker/run
     environment:
       KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka3:19092,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9094
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:SASL_PLAINTEXT,LISTENER_DOCKER_EXTERNAL:SASL_PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
       KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
       KAFKA_BROKER_ID: 3
-      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf"
+      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf -Dzookeeper.sasl.client=false"
       KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
       KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
       ZOOKEEPER_SASL_ENABLED: "false"
-      KAFKA_AUTHORIZER_CLASS_NAME: "kafka.security.auth.SimpleAclAuthorizer"
+      KAFKA_AUTHORIZER_CLASS_NAME: "kafka.security.authorizer.AclAuthorizer"
       KAFKA_SUPER_USERS: "User:test;User:kafka"
       KAFKA_CONFLUENT_SUPPORT_METRICS_ENABLE: "false"
-    volumes:
-      - ./data/kafka3/data:/var/lib/kafka/data
-      - ./config/kafka_server_jaas.conf:/etc/kafka/kafka_server_jaas.conf
     depends_on:
       - zoo1
-

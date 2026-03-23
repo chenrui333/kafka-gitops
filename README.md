@@ -1,6 +1,6 @@
 # kafka-gitops
 
-![Java CI](https://github.com/devshawn/kafka-gitops/workflows/Java%20CI/badge.svg) [![Maintainability](https://api.codeclimate.com/v1/badges/373371aac3f69c292031/maintainability)](https://codeclimate.com/github/devshawn/kafka-gitops/maintainability) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+![Java CI](https://github.com/chenrui333/kafka-gitops/actions/workflows/gradle.yml/badge.svg) [![Maintainability](https://api.codeclimate.com/v1/badges/373371aac3f69c292031/maintainability)](https://codeclimate.com/github/devshawn/kafka-gitops/maintainability) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 Manage Apache Kafka topics and ACLs through a desired state file.
 
@@ -31,6 +31,12 @@ This tool supports self-hosted Kafka, managed Kafka, and Confluent Cloud cluster
 ## Getting Started
 
 Documentation on how to install and use this tool can be found on our [documentation site][documentation].
+
+## Compatibility
+
+The current build baseline targets JDK 21 and Kafka 3.9.1 client compatibility.
+
+For local development and CI, the Gradle build runs on JDK 21.
 
 ## Usage
 
@@ -71,6 +77,32 @@ By setting:
 The following configuration is generated:
 
 * `sasl.jaas.config`: `org.apache.kafka.common.security.plain.PlainLoginModule required username="USERNAME" password="PASSWORD";`
+
+### Command Config Files
+
+You can also supply a Kafka client properties file with `--command-config` / `-c`.
+
+For example:
+
+```bash
+kafka-gitops -c command.properties -f state.yaml validate
+```
+
+Properties loaded from the command config file are merged with `KAFKA_*` environment variables.
+
+### Running Tests Locally
+
+Start the local Kafka fixture:
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+```
+
+Then run the test suite:
+
+```bash
+./gradlew test
+```
 
 ## State File
 

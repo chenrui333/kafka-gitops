@@ -4,77 +4,87 @@ plugins {
     id 'application'
     id 'idea'
     id 'jacoco'
-    id 'org.inferred.processors' version '1.2.10'
-    id "net.ltgt.apt" version "0.21"
-    id 'com.github.johnrengelman.shadow' version '4.0.4'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
-apply plugin: 'net.ltgt.apt-idea'
+group = 'com.devshawn'
 
-group 'com.devshawn'
+application {
+    mainClass = 'com.devshawn.kafka.gitops.MainCommand'
+}
 
-mainClassName = 'com.devshawn.kafka.gitops.MainCommand'
-
-sourceCompatibility = 1.8
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compile group: 'org.apache.kafka', name: 'kafka-clients', version: '2.4.0'
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.1'
-    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.8"
-    compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.10.2"
-    compile 'info.picocli:picocli:4.1.4'
+    implementation 'org.apache.kafka:kafka-clients:3.9.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.10.1'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.8'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.10.2'
+    implementation 'info.picocli:picocli:4.1.4'
+    implementation 'org.slf4j:slf4j-api:1.7.30'
+    implementation 'ch.qos.logback:logback-classic:1.2.3'
+    implementation 'ch.qos.logback:logback-core:1.2.3'
 
-    compile 'org.slf4j:slf4j-api:1.7.30'
-    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
-    compile group: 'ch.qos.logback', name: 'logback-core', version: '1.2.3'
+    compileOnly 'org.inferred:freebuilder:2.8.0'
+    annotationProcessor 'org.inferred:freebuilder:2.8.0'
 
-    processor 'org.inferred:freebuilder:2.5.0'
-
-    testCompile group: 'junit', name: 'junit', version: '4.12'
-    testCompile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.4.4'
-    testCompile group: 'org.spockframework', name: 'spock-core', version: '1.0-groovy-2.4'
-    testCompile group: 'cglib', name: 'cglib-nodep', version: '2.2'
-    testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
-    testCompile group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0'
+    testImplementation 'org.apache.groovy:groovy:4.0.30'
+    testImplementation 'org.spockframework:spock-core:2.4-groovy-4.0'
+    testImplementation 'org.skyscreamer:jsonassert:1.5.0'
 }
 
-jacocoTestReport {
+jacoco {
+    toolVersion = '0.8.14'
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    environment 'KAFKA_BOOTSTRAP_SERVERS', System.getenv('KAFKA_BOOTSTRAP_SERVERS') ?: 'localhost:9092'
+    environment 'KAFKA_SASL_JAAS_USERNAME', System.getenv('KAFKA_SASL_JAAS_USERNAME') ?: 'test'
+    environment 'KAFKA_SASL_JAAS_PASSWORD', System.getenv('KAFKA_SASL_JAAS_PASSWORD') ?: 'test-secret'
+    environment 'KAFKA_SASL_MECHANISM', System.getenv('KAFKA_SASL_MECHANISM') ?: 'PLAIN'
+    environment 'KAFKA_SECURITY_PROTOCOL', System.getenv('KAFKA_SECURITY_PROTOCOL') ?: 'SASL_PLAINTEXT'
+}
+
+tasks.named('jacocoTestReport', JacocoReport) {
     reports {
-        xml.enabled = true
-        html.enabled = true
-        xml.destination "${buildDir}/reports/jacoco/report.xml"
+        xml.required = true
+        html.required = true
+        xml.outputLocation = layout.buildDirectory.file('reports/jacoco/report.xml')
     }
 
-    afterEvaluate {
-        classDirectories = files(classDirectories.files.collect {
-            fileTree(dir: it,
-                    excludes: [
-                            '**/*_Builder*/**',
-                    ])
-        })
-    }
+    classDirectories.setFrom(sourceSets.main.output.asFileTree.matching {
+        exclude '**/*_Builder*/**'
+    })
 }
 
-jar {
+tasks.named('jar') {
     manifest {
-        attributes(
-                'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
-                'Main-Class': 'com.devshawn.kafka.gitops.MainCommand'
-        )
+        attributes('Main-Class': 'com.devshawn.kafka.gitops.MainCommand')
     }
 }
 
-task buildExecutableJar(type: Exec) {
-    commandLine "sh", "build.sh"
+tasks.register('buildExecutableJar', Exec) {
+    commandLine 'sh', 'build.sh'
 }
 
-task buildRelease(type: Zip, group: "build") {
-    from("$buildDir/output")
+tasks.register('buildRelease', Zip) {
+    group = 'build'
+    from(layout.buildDirectory.dir('output'))
 }
 
-buildRelease.dependsOn buildExecutableJar
-buildExecutableJar.dependsOn shadowJar
+tasks.named('buildRelease') {
+    dependsOn tasks.named('buildExecutableJar')
+}
+
+tasks.named('buildExecutableJar') {
+    dependsOn tasks.named('shadowJar')
+}

@@ -23,9 +23,13 @@ public class KafkaGitopsConfigLoader {
     }
 
     public static KafkaGitopsConfig load(File configFile) {
+        return load(configFile, System.getenv());
+    }
+
+    static KafkaGitopsConfig load(File configFile, Map<String, String> environment) {
         KafkaGitopsConfig.Builder builder = new KafkaGitopsConfig.Builder();
         setConfigFromFile(configFile, builder);
-        setConfigFromEnvironment(builder);
+        setConfigFromEnvironment(builder, environment);
         return builder.build();
     }
 
@@ -42,12 +46,10 @@ public class KafkaGitopsConfigLoader {
         }
     }
 
-    private static void setConfigFromEnvironment(KafkaGitopsConfig.Builder builder) {
+    private static void setConfigFromEnvironment(KafkaGitopsConfig.Builder builder, Map<String, String> environment) {
         Map<String, Object> config = new HashMap<>();
         AtomicReference<String> username = new AtomicReference<>();
         AtomicReference<String> password = new AtomicReference<>();
-
-        Map<String, String> environment = System.getenv();
 
         environment.forEach((key, value) -> {
             if (key.equals("KAFKA_SASL_JAAS_USERNAME")) {

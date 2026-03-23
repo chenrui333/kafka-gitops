@@ -1,26 +1,14 @@
 package com.devshawn.kafka.gitops
 
-import org.junit.ClassRule
-import org.junit.contrib.java.lang.system.EnvironmentVariables
 import org.skyscreamer.jsonassert.JSONAssert
 import picocli.CommandLine
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 @Unroll
 class PlanCommandIntegrationSpec extends Specification {
 
-    @Shared
-    @ClassRule
-    EnvironmentVariables environmentVariables
-
     void setupSpec() {
-        environmentVariables.set("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
-        environmentVariables.set("KAFKA_SASL_JAAS_USERNAME", "test")
-        environmentVariables.set("KAFKA_SASL_JAAS_PASSWORD", "test-secret")
-        environmentVariables.set("KAFKA_SASL_MECHANISM", "PLAIN")
-        environmentVariables.set("KAFKA_SECURITY_PROTOCOL", "SASL_PLAINTEXT")
         TestUtils.cleanUpCluster()
     }
 
@@ -137,7 +125,7 @@ class PlanCommandIntegrationSpec extends Specification {
         "seed-topic-add-partitions"         | false
     }
 
-    void 'test include unchanged flag - #planNam #includeUnchanged'() {
+    void 'test include unchanged flag - #planName #includeUnchanged'() {
         setup:
         TestUtils.cleanUpCluster()
         TestUtils.seedCluster()
