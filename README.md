@@ -90,6 +90,25 @@ kafka-gitops -c command.properties -f state.yaml validate
 
 Properties loaded from the command config file are merged with `KAFKA_*` environment variables.
 
+### Amazon MSK IAM Authentication
+
+`kafka-gitops` can connect to Amazon MSK clusters that use the `AWS_MSK_IAM` SASL mechanism as long as the AWS MSK IAM auth plugin jar is on the Java classpath.
+
+Example:
+
+```bash
+export CLASSPATH=/path/to/aws-msk-iam-auth-<version>-all.jar
+export KAFKA_BOOTSTRAP_SERVERS=b-1.example.amazonaws.com:9098
+export KAFKA_SECURITY_PROTOCOL=SASL_SSL
+export KAFKA_SASL_MECHANISM=AWS_MSK_IAM
+export KAFKA_SASL_JAAS_CONFIG='software.amazon.msk.auth.iam.IAMLoginModule required;'
+export KAFKA_SASL_CLIENT_CALLBACK_HANDLER_CLASS='software.amazon.msk.auth.iam.IAMClientCallbackHandler'
+
+kafka-gitops -f state.yaml validate
+```
+
+The container image supports the same approach: copy or mount the AWS MSK IAM auth plugin jar into the container and set `CLASSPATH` so the launcher can see it.
+
 ### Running Tests Locally
 
 Start the local Kafka fixture:
