@@ -3,35 +3,37 @@ name: Java CI
 on:
   push:
     branches:
-      - '**'
+      - "**"
     tags-ignore:
-      - '**'
+      - "**"
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Set up JDK 1.8
-      uses: actions/setup-java@v1
-      with:
-        java-version: 1.8
+      - uses: actions/checkout@v6.0.2
 
-    - name: Start docker compose for integration tests
-      run: docker-compose -f docker/docker-compose.yml up -d
+      - name: Set up JDK 8
+        uses: actions/setup-java@v5.2.0
+        with:
+          distribution: temurin
+          java-version: "8"
+          cache: gradle
 
-    - name: Build with Gradle
-      run: ./gradlew --info build jacocoTestReport
+      - name: Start docker compose for integration tests
+        run: docker compose -f docker/docker-compose.yml up -d
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
-      with:
-        file: ./build/reports/jacoco/report.xml
+      - name: Build with Gradle
+        run: ./gradlew --info build jacocoTestReport
 
-    - name: Upload build artifact
-      uses: actions/upload-artifact@v1
-      with:
-        name: kafka-gitops.jar
-        path: build/libs/kafka-gitops-all.jar
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5.5.3
+        with:
+          files: ./build/reports/jacoco/report.xml
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7.0.0
+        with:
+          name: kafka-gitops.jar
+          path: build/libs/kafka-gitops-all.jar
