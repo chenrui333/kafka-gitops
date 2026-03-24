@@ -278,7 +278,8 @@ public class StateManager {
         }
         desiredStateFile.getServices().forEach((name, service) -> {
             if (service instanceof KafkaStreamsService) {
-                topics.add(name);
+                KafkaStreamsService streamsService = (KafkaStreamsService) service;
+                topics.add(streamsService.getApplicationId().orElse(name));
             }
         });
         return topics;

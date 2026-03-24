@@ -43,6 +43,22 @@ class KafkaGitopsConfigLoaderSpec extends Specification {
         config.config.get(SaslConfigs.SASL_MECHANISM) == "PLAIN"
     }
 
+    void 'test config logging redacts sensitive values'() {
+        when:
+        Map<String, Object> sanitized = KafkaGitopsConfigLoader.sanitizeConfigForLogging([
+                (CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG): 'localhost:9092',
+                (SaslConfigs.SASL_JAAS_CONFIG)                : 'secret-value',
+                'ssl.keystore.password'                      : 'keystore-secret',
+                'basic.auth.user.info'                       : 'user:password',
+        ])
+
+        then:
+        sanitized.get(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG) == 'localhost:9092'
+        sanitized.get(SaslConfigs.SASL_JAAS_CONFIG) == '[REDACTED]'
+        sanitized.get('ssl.keystore.password') == '[REDACTED]'
+        sanitized.get('basic.auth.user.info') == '[REDACTED]'
+    }
+
     private static Map<String, String> testEnvironment(Map<String, String> overrides = [:]) {
         return [
                 KAFKA_BOOTSTRAP_SERVERS: 'localhost:9092',

@@ -160,4 +160,27 @@ class ApplyCommandIntegrationSpec extends Specification {
         System.setOut(oldOut)
     }
 
+    void 'test apply decreases replication without error'() {
+        setup:
+        TestUtils.seedCluster()
+        String file = TestUtils.getResourceFilePath('plans/seed-topic-remove-replicas-plan.json')
+        MainCommand mainCommand = new MainCommand()
+        CommandLine cmd = new CommandLine(mainCommand)
+
+        when:
+        int exitCode = cmd.execute('-f', file, 'apply', '-p', file)
+
+        then:
+        exitCode == 0
+
+        when:
+        def topicDescriptions = TestUtils.withAdminClient { adminClient ->
+            TestUtils.waitFor(adminClient.describeTopics(['topic-with-configs-1', 'topic-with-configs-2'] as Set).all())
+        }
+
+        then:
+        topicDescriptions['topic-with-configs-1'].partitions().every { it.replicas().size() == 1 }
+        topicDescriptions['topic-with-configs-2'].partitions().every { it.replicas().size() == 1 }
+    }
+
 }

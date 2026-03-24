@@ -8,6 +8,18 @@ plugins {
 }
 
 group = 'com.devshawn'
+version = providers.gradleProperty('releaseVersion')
+        .orElse(providers.environmentVariable('RELEASE_VERSION'))
+        .orElse('dev')
+        .get()
+
+def generatedResourcesDir = layout.buildDirectory.dir('generated-resources/main')
+
+sourceSets {
+    main {
+        resources.srcDir(generatedResourcesDir)
+    }
+}
 
 application {
     mainClass = 'com.devshawn.kafka.gitops.MainCommand'
@@ -21,6 +33,16 @@ java {
 
 repositories {
     mavenCentral()
+}
+
+def writeVersionProperties = tasks.register('writeVersionProperties') {
+    outputs.file(generatedResourcesDir.map { it.file('kafka-gitops-version.properties') })
+
+    doLast {
+        File outputFile = generatedResourcesDir.get().file('kafka-gitops-version.properties').asFile
+        outputFile.parentFile.mkdirs()
+        outputFile.text = "version=${project.version}\n"
+    }
 }
 
 dependencies {
@@ -68,8 +90,24 @@ tasks.named('jacocoTestReport', JacocoReport) {
 
 tasks.named('jar') {
     manifest {
-        attributes('Main-Class': 'com.devshawn.kafka.gitops.MainCommand')
+        attributes(
+                'Main-Class': 'com.devshawn.kafka.gitops.MainCommand',
+                'Implementation-Version': project.version,
+        )
     }
+}
+
+tasks.named('shadowJar') {
+    manifest {
+        attributes(
+                'Main-Class': 'com.devshawn.kafka.gitops.MainCommand',
+                'Implementation-Version': project.version,
+        )
+    }
+}
+
+tasks.named('processResources') {
+    dependsOn(writeVersionProperties)
 }
 
 tasks.register('buildExecutableJar', Exec) {

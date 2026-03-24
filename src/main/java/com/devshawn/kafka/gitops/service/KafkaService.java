@@ -123,7 +123,7 @@ public class KafkaService {
                     List<Integer> replicas = topicPartitionInfo.replicas().stream().map(Node::id).collect(Collectors.toList());
                     // If we need to remove replicas, always remove the last ones
                     while (replicas.size() > integer) {
-                        replicas.remove(replicas.size());
+                        replicas.remove(replicas.size() - 1);
                     }
                     // If we need to increase replicas, add partitions randomly in the nodes
                     if(replicas.size() < integer) {

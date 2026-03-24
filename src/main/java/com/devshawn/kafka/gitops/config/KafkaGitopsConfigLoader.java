@@ -10,6 +10,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
@@ -17,6 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class KafkaGitopsConfigLoader {
 
     private static org.slf4j.Logger log = LoggerFactory.getLogger(KafkaGitopsConfigLoader.class);
+    private static final String REDACTED_VALUE = "[REDACTED]";
 
     public static KafkaGitopsConfig load() {
         return load(null);
@@ -65,9 +68,26 @@ public class KafkaGitopsConfigLoader {
         handleDefaultConfig(config);
         handleAuthentication(username, password, config);
 
-        log.info("Kafka Config: {}", config);
+        log.info("Kafka Config: {}", sanitizeConfigForLogging(config));
 
         builder.putAllConfig(config);
+    }
+
+    static Map<String, Object> sanitizeConfigForLogging(Map<String, Object> config) {
+        Map<String, Object> sanitized = new LinkedHashMap<>();
+        config.forEach((key, value) -> sanitized.put(key, isSensitiveConfigKey(key) ? REDACTED_VALUE : value));
+        return sanitized;
+    }
+
+    private static boolean isSensitiveConfigKey(String key) {
+        String normalizedKey = key.toLowerCase(Locale.ROOT);
+        return normalizedKey.contains("password")
+                || normalizedKey.contains("secret")
+                || normalizedKey.contains("jaas")
+                || normalizedKey.equals("basic.auth.user.info")
+                || normalizedKey.contains("access.token")
+                || normalizedKey.contains("refresh.token")
+                || normalizedKey.endsWith(".token");
     }
 
     private static void handleDefaultConfig(Map<String, Object> config) {

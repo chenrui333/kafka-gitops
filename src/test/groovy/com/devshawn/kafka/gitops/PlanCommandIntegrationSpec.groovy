@@ -282,4 +282,28 @@ class PlanCommandIntegrationSpec extends Specification {
         "no-changes" | false
         "no-changes" | true
     }
+
+    void 'test custom streams application id ignores internal topics from deletion'() {
+        setup:
+        TestUtils.cleanUpCluster()
+        TestUtils.withAdminClient { adminClient ->
+            TestUtils.createTopic('test-streams-changelog', 1, adminClient)
+        }
+        File planOutputFile = File.createTempFile('custom-application-id-streams-', '.json')
+        String file = TestUtils.getResourceFilePath('plans/custom-application-id-streams.yaml')
+        String expectedPlan = TestUtils.getResourceFileContent('plans/custom-application-id-streams-plan.json')
+        MainCommand mainCommand = new MainCommand()
+        CommandLine cmd = new CommandLine(mainCommand)
+
+        when:
+        int exitCode = cmd.execute('-f', file, 'plan', '-o', planOutputFile.absolutePath)
+
+        then:
+        exitCode == 0
+        JSONAssert.assertEquals(expectedPlan, TestUtils.getFileContent(planOutputFile.absolutePath), true)
+
+        cleanup:
+        planOutputFile?.delete()
+        TestUtils.cleanUpCluster()
+    }
 }

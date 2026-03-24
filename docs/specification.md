@@ -4,7 +4,7 @@ This document describes how to write a Kafka cluster desired state file. The fil
 
 !!! note
 
-    Current version: `1.0.3`
+    For the current packaged CLI release, see the repository releases page.
 
 The desired state file consists of:
 
