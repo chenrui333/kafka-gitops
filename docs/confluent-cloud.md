@@ -39,23 +39,23 @@ To give an overview, throughout this guide, this will create:
 
 To use `kafka-gitops` with Confluent Cloud, you'll need to set a few environment variables.
 
-* `KAFKA_BOOTSTRAP_SERVERS`: Your Confluent Cloud cluster URL
-* `KAFKA_SASL_JAAS_USERNAME`: Your Confluent Cloud API key
-* `KAFKA_SASL_JAAS_PASSWORD`: Your Confluent Cloud API secret
-* `KAFKA_SECURITY_PROTOCOL`: `SASL_SSL`
-* `KAFKA_SASL_MECHANISM`: `PLAIN`
-* `KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM`: `HTTPS`
+- `KAFKA_BOOTSTRAP_SERVERS`: your Confluent Cloud cluster URL
+- `KAFKA_SASL_JAAS_USERNAME`: your Confluent Cloud API key
+- `KAFKA_SASL_JAAS_PASSWORD`: your Confluent Cloud API secret
+- `KAFKA_SECURITY_PROTOCOL`: `SASL_SSL`
+- `KAFKA_SASL_MECHANISM`: `PLAIN`
+- `KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM`: `HTTPS`
 
 Additionally, you'll need to login to the `ccloud` tool. You can automate this by setting the following environment variables:
 
-* `XX_CCLOUD_EMAIL`: Your Confluent Cloud administrator email
-* `XX_CCLOUD_PASSWORD`: Your Confluent Cloud administrator password
+- `XX_CCLOUD_EMAIL`: your Confluent Cloud administrator email
+- `XX_CCLOUD_PASSWORD`: your Confluent Cloud administrator password
 
 Then, you can run `ccloud login` and it will run without a prompt. This is great for CI builds.
 
 You can optionally specify a path to a `ccloud` executable:
 
-* `CCLOUD_EXECUTABLE_PATH`: `/full/path/to/ccloud`
+- `CCLOUD_EXECUTABLE_PATH`: `/full/path/to/ccloud`
 
 Otherwise, `ccloud` must be on your path.
 
@@ -101,7 +101,9 @@ The command will also pretty-print what changes it wants to make to the cluster.
 
 To execute a plan against the cluster, we use the apply command.
 
-!> **WARNING**: This will apply changes to the cluster. This can be potentially destructive if you do not have all topics and ACLs defined.
+!!! warning
+
+    This applies changes to the cluster. It can be destructive if you do not have all topics and ACLs defined.
 
 By default, the apply command will generate a plan and then apply it. For most situations, **you should output a plan file from the plan command and pass it to the apply command**.
 
@@ -111,8 +113,6 @@ Example:
 kafka-gitops -f state.yaml apply -p plan.json
 ```
 
-Congrats! You're now using `kafka-gitops` to manage your Confluent Cloud cluster. Once you've practiced locally, you should commit your state file to a repository and create CI/CD pipelines to create plans and execute them against the cluster. 
+You are now using `kafka-gitops` to manage your Confluent Cloud cluster. Once you are comfortable with the workflow, commit your state file to a repository and automate plan and apply steps in CI/CD.
 
-Welcome to GitOps! 
-
-[installation]: /installation.md
+[installation]: installation.md

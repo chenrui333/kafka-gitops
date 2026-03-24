@@ -2,19 +2,15 @@
 
 Installing `kafka-gitops` requires either **Java** or **Docker**.
 
-## Homebrew
+## Binary Release
 
-Install `kafka-gitops` with homebrew:
+Download the latest `kafka-gitops.zip` from the [GitHub releases page](https://github.com/chenrui333/kafka-gitops/releases), then extract the `kafka-gitops` executable and move it onto your `PATH`.
 
 ```bash
-brew tap devshawn/kafka-gitops
-brew install kafka-gitops
+unzip kafka-gitops.zip
+chmod +x kafka-gitops
+mv kafka-gitops /usr/local/bin/kafka-gitops
 ```
-
-## Local
-
-Install `kafka-gitops` by downloading the zip file from our [releases][releases] page. Move the `kafka-gitops` file to somewhere on your `$PATH`, such as `/usr/local/bin`. 
-
 
 Ensure the command is working by running:
 
@@ -30,6 +26,7 @@ Manage Kafka resources with a desired state file.
   -f, --file=<file>   Specify the desired state file.
   -h, --help          Display this help message.
       --no-delete     Disable the ability to delete resources.
+      --skip-acls     Do not take ACLs into account during plans or applies.
   -v, --verbose       Show more detail during execution.
   -V, --version       Print the current version of this tool.
 Commands:
@@ -39,9 +36,20 @@ Commands:
   validate  Validates the desired state file.
 ```
 
+## Build From Source
+
+The current build baseline uses JDK 21.
+
+```bash
+./gradlew buildRelease
+```
+
+The release zip is written to `build/distributions/kafka-gitops.zip`.
+
 ## Docker
 
-We provide a public docker image: [devshawn/kafka-gitops][docker].
+We publish a Docker image at [`devshawn/kafka-gitops`](https://hub.docker.com/r/devshawn/kafka-gitops).
 
-[releases]: https://github.com/devshawn/kafka-gitops/releases
-[docker]: https://hub.docker.com/r/devshawn/kafka-gitops
+The Docker Hub namespace has not moved yet, so use that image name even though the source repository now lives under `chenrui333/kafka-gitops`.
+
+If you need Amazon MSK IAM authentication, copy or mount the AWS MSK IAM auth plugin jar into the container and set `CLASSPATH` to that jar before running `kafka-gitops`.

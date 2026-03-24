@@ -2,10 +2,12 @@
 
 Getting started with `kafka-gitops` is simple. For this tutorial, we will assume:
 
-- You have installed the `kafka-gitops` command as [described here](/installation.md).
-- You have a kafka cluster running on `localhost:9092`. 
+- You have installed `kafka-gitops` as [described in Installation](installation.md).
+- You have a Kafka cluster running on `localhost:9092`.
 
-!> **NOTE**: If you desire to use this with Confluent Cloud, read our [Confluent Cloud page][ccloud].
+!!! note
+
+    If you want to use this with Confluent Cloud, read the [Confluent Cloud guide](confluent-cloud.md).
 
 ## Desired State File
 
@@ -24,8 +26,8 @@ topics:
 
 Currently, configuring `kafka-gitops` is done via environment variables. To configure properties, prefix them with `KAFKA_`. For example:
 
-* `KAFKA_BOOTSTRAP_SERVERS`: Injects as `bootstrap.servers`
-* `KAFKA_CLIENT_ID`: Injects as `client.id`
+- `KAFKA_BOOTSTRAP_SERVERS`: injects as `bootstrap.servers`
+- `KAFKA_CLIENT_ID`: injects as `client.id`
 
 For our quick start example, open a terminal where your `state.yaml` file is located and set the bootstrap servers:
 
@@ -33,10 +35,12 @@ For our quick start example, open a terminal where your `state.yaml` file is loc
 export KAFKA_BOOTSTRAP_SERVERS=localhost:9092
 ```
 
-!> **NOTE**: If running `kafka-gitops` against a secured Kafka cluster, it must be run with super user credentials or a user with special ACLs. [Read more on our permissions page][permissions].
+!!! note
+
+    If you run `kafka-gitops` against a secured Kafka cluster, it must use super user credentials or a user with the required ACLs. See [Permissions](permissions.md).
 
 ## Validate
-We can validate the desired state file conforms to the [specification][specification]. To do this, run:
+We can validate the desired state file conforms to the [specification](specification.md). To do this, run:
 
 ```bash
 kafka-gitops validate
@@ -103,7 +107,9 @@ kafka-gitops --skip-acls plan
 
 To execute a plan against the cluster, we use the apply command.
 
-!> **WARNING**: This will apply changes to the cluster. This can be potentially destructive if you do not have all topics and ACLs defined.
+!!! warning
+
+    This applies changes to the cluster. It can be destructive if you do not have all topics and ACLs defined.
 
 Run:
 
@@ -145,9 +151,4 @@ org.apache.kafka.common.errors.PolicyViolationException: Topic replication facto
 [ERROR] Fix the error, re-create a plan, and apply the new plan to continue.
 ```
 
-Congrats! You've successfully started using GitOps strategies to manage your cluster. If you have security on your cluster, read the [services][services] page to start defining services. 
-
-[ccloud]: /confluent-cloud.md
-[permissions]: /permissions.md
-[specification]: /specification.md
-[services]: /services.md
+You now have the basic local workflow in place. If your cluster uses ACLs, continue with [Services](services.md) to define applications and generated ACLs.

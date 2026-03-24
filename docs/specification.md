@@ -1,8 +1,10 @@
 # Desired State Specification
 
-This document describes the specification for how to write your Kafka cluster's desired state file. This currently must be a `YAML` file. 
+This document describes how to write a Kafka cluster desired state file. The file format is YAML.
 
-?> Current version: `1.0.3`
+!!! note
+
+    Current version: `1.0.3`
 
 The desired state file consists of:
 
@@ -15,14 +17,14 @@ The desired state file consists of:
 
 ## Settings
 
-**Synopsis**: These are specific settings for configuring `kafka-gitops`. 
+**Synopsis**: These are specific settings for configuring `kafka-gitops`.
 
 **Options**:
 
-- **ccloud** [Optional]: An object which contains an `enabled` field. Set this to true if using a Confluent Cloud cluster. 
-- **topics** [Optional]: 
-    - **defaults** [Optional]: Specify topic defaults so you don't need to specify them for every topic in the state file. Currently, only replication is supported. 
-    - **blacklist** [Optional]: Add a prefixed topic blacklist for ignoring specific topics when using `kafka-gitops`. This allows topics to be ignored from being deleted if they are not defined in the desired state file.
+- **ccloud** [Optional]: An object that contains an `enabled` field. Set this to `true` when using a Confluent Cloud cluster.
+- **topics** [Optional]:
+  - **defaults** [Optional]: Specify topic defaults so you do not need to repeat them for every topic. Currently only replication is supported.
+  - **blacklist** [Optional]: Add a prefixed topic blacklist for ignoring specific topics when using `kafka-gitops`. This allows topics to be ignored from deletion if they are not defined in the desired state file.
 
 **Example**:
 ```yaml
@@ -41,7 +43,9 @@ settings:
 
 **Synopsis**: Define the topics you would like on your cluster and their configuration.
 
-?> Each topic is defined as a key-value pair, with the key being the topic name and the value being an object of settings.
+!!! note
+
+    Each topic is defined as a key-value pair, with the key being the topic name and the value being an object of settings.
 
 **Example**:
 
@@ -61,7 +65,9 @@ If a default `replication` value is supplied in the `settings` block, then the `
 
 **Synopsis**: Define the services that will utilize your Kafka cluster. These service definitions allow `kafka-gitops` to generate ACLs for you. Yay!
 
-?> Each service has a `type`. This defines its structure.
+!!! note
+
+    Each service has a `type`. This defines its structure.
 
 There are currently three service types:
 
@@ -69,11 +75,15 @@ There are currently three service types:
 - `kafka-connect`
 - `kafka-streams`
 
-!> **NOTE**: If using Confluent Cloud, omit the `principal` fields.
+!!! note
+
+    If you use Confluent Cloud, omit the `principal` fields.
 
 **Example application**:
 
-?> **NOTE**: The `group-id` property is optional and defaults to the service name.
+!!! note
+
+    The `group-id` property is optional and defaults to the service name.
 
 ```yaml
 services:
@@ -90,7 +100,9 @@ services:
 
 **Example kafka connect cluster**:
 
-?> **NOTE**: The `group-id` property is optional and defaults to the service name. The `storage-topics` property is also optional; the defaults can be found on the [services][services] page.
+!!! note
+
+    The `group-id` property is optional and defaults to the service name. The `storage-topics` property is also optional; the defaults are documented on the [Services](services.md) page.
 
 ```yaml
 services:
@@ -113,7 +125,9 @@ services:
 
 **Example kafka streams application**:
 
-?> **NOTE**: The `application-id` property is optional and defaults to the service name.
+!!! note
+
+    The `application-id` property is optional and defaults to the service name.
 
 ```yaml
 services:
@@ -133,7 +147,9 @@ Behind the scenes, `kafka-gitops` generates ACLs based on these definitions.
 
 **Synopsis**: Define the users that will utilize your Kafka cluster. These user definitions allow `kafka-gitops` to generate ACLs for you. Yay!
 
-?> **NOTE**: If using Confluent Cloud, users are service accounts that are prefixed with `user-`.
+!!! note
+
+    If you use Confluent Cloud, users are service accounts prefixed with `user-`.
 
 ```yaml
 users:
@@ -203,6 +219,6 @@ customUserAcls:
       permission: ALLOW
 ```
 
-?> **NOTE**: The `principal` field can be left out here and it will be inherited from the user definition.
+!!! note
 
-[services]: /services.md
+    The `principal` field can be omitted here and will be inherited from the user definition.

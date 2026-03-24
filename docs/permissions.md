@@ -6,11 +6,13 @@ When running against a secured Kafka cluster, `kafka-gitops` needs to be authori
 
 For the purposes of this example, we'll assume we have a user principal named `gitops-user`. 
 
-Full usage of kafka-gitops means you are managing topics, services, ACLs, and users. If you plan to make use of our ACL management features, the `gitops-user` principal must have the ability to create and manage ACLs.
+Full usage of `kafka-gitops` means you are managing topics, services, ACLs, and users. If you plan to make use of the ACL management features, the `gitops-user` principal must have the ability to create and manage ACLs.
 
-If you do not want to use a super user, you can create a `gitops-user` principal and a current super user can make them an *ACL Administrator*. An ACL administrator has the `ALTER --cluster` access control entry. This entry allows the user to create and delete ACLs for the given cluster. 
+If you do not want to use a super user, create a `gitops-user` principal and have a current super user make it an *ACL Administrator*. An ACL administrator has the `ALTER --cluster` access control entry. This entry allows the user to create and delete ACLs for the cluster.
 
-!> **Caution**: An ACL administrator can then create ACLs for any other principal, including themselves.  
+!!! warning
+
+    An ACL administrator can create ACLs for any other principal, including itself.
 
 ### Manually Add ACLs
 Add the alter cluster ACL to the `gitops-user` principal:
@@ -33,7 +35,7 @@ kafka-acls --bootstrap-server localhost:9092 --command-config admin.properties -
 The above configs allow the `gitops-user` to manage ACLs, topics, and topic configurations.
 
 ### State File Definition
-You can also create the ACLs using kafka-gitops. Run it once with super admin credentials using the state file below, and then switch to using your `gitops-user` credentials.
+You can also create the ACLs using `kafka-gitops`. Run it once with super admin credentials using the state file below, then switch to `gitops-user` credentials.
 
 ```yaml
 users:
@@ -92,4 +94,3 @@ customUserAcls:
       operation: ALTER_CONFIGS
       permission: ALLOW
 ```
-

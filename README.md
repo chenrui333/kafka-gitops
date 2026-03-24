@@ -156,6 +156,6 @@ Copyright (c) 2020 Shawn Seymour.
 
 Licensed under the [Apache 2.0 license][license].
 
-[documentation]: https://devshawn.github.io/kafka-gitops
+[documentation]: https://chenrui333.github.io/kafka-gitops/
 [contributing]: ./CONTRIBUTING.md
 [license]: ./LICENSE

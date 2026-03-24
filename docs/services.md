@@ -1,14 +1,16 @@
 # Services
 
-If you have security on your cluster, you can use `kafka-gitops` to manage ACLs. Kafka GitOps automatically builds the necessary ACLs for most use cases. 
+If you have security on your cluster, you can use `kafka-gitops` to manage ACLs. Kafka GitOps automatically builds the necessary ACLs for most common use cases.
 
 ## Application Example
 
-A basic example shown below defines one topic, `test-topic`, and one service, `my-application`. 
+A basic example shown below defines one topic, `test-topic`, and one service, `my-application`.
 
 The service `my-application` both consumes from and produces to `test-topic`. This will generate the necessary ACLs for `my-application` to do this.
 
-?> **NOTE**: If using Confluent Cloud, omit the principal field.
+!!! note
+
+    If you use Confluent Cloud, omit the `principal` field.
 
 ```yaml
 topics:
@@ -48,11 +50,11 @@ services:
       - test-topic
 ```
 
-This would allow your consumer group to access kafka using `my-application-service` as the `group.id`.
+This allows your consumer group to access Kafka using `my-application-service` as the `group.id`.
 
 ## Kafka Streams Example
 
-A basic example shown below defines one topic, `test-topic`, and one kafka streams application, `my-stream`. 
+A basic example shown below defines one topic, `test-topic`, and one Kafka Streams application, `my-stream`.
 
 The service `my-stream` both consumes from and produces to `test-topic`. This will generate the necessary ACLs for `my-stream` to do this.
 
@@ -95,11 +97,11 @@ services:
       - test-topic
 ```
 
-This would allow your streams application to access kafka using `my-stream-application` as the `application.id`.
+This allows your Streams application to access Kafka using `my-stream-application` as the `application.id`.
 
 ## Kafka Connect Example
 
-A basic example which defines one Kafka Connect cluster that has one connector running. 
+A basic example which defines one Kafka Connect cluster that has one connector running.
 
 ```yaml
 topics:
@@ -183,6 +185,8 @@ services:
           - rabbitmq-data
 ```
 
-This allows your connect cluster to access kafka using `kafka-connect-cluster` as the `group.id`. 
+This allows your Connect cluster to access Kafka using `kafka-connect-cluster` as the `group.id`.
 
-!> **NOTE**: The `group-id` setting only affects the connect cluster `group.id`, and not any sink connector group IDs.
+!!! note
+
+    The `group-id` setting only affects the Connect cluster `group.id`, not any sink connector group IDs.

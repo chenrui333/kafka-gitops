@@ -1,0 +1,26 @@
+site_name: kafka-gitops
+site_description: Manage Apache Kafka topics and ACLs through a desired state file.
+site_url: https://chenrui333.github.io/kafka-gitops/
+repo_name: chenrui333/kafka-gitops
+repo_url: https://github.com/chenrui333/kafka-gitops
+edit_uri: edit/main/docs/
+
+theme:
+  name: readthedocs
+
+nav:
+  - Overview: index.md
+  - Installation: installation.md
+  - Quick Start: quick-start.md
+  - Services: services.md
+  - Permissions: permissions.md
+  - Confluent Cloud: confluent-cloud.md
+  - Specification: specification.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - tables
+  - toc:
+      permalink: true
