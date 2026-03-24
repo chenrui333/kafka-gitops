@@ -50,6 +50,8 @@ Keep changes small, test-backed, and scoped to one behavior or maintenance conce
 - Treat an explicit `--command-config` path as required input: unreadable files should fail fast rather than falling back to ambient environment config.
 - When changing planning or apply behavior, update the matching JSON/YAML fixtures and add focused regression coverage in Spock.
 - Deduplicate generated ACLs in desired-state construction when different generation paths can produce the same binding.
+- Use unique temp files in tests instead of shared `/tmp/plan.json` paths so repeated and parallel runs do not collide.
+- Keep dependency review automation in place; if you change the Gradle or Actions surface, update `.github/dependabot.yml` deliberately rather than letting it drift.
 - Integration-style tests assume the local Kafka fixture is running and may mutate cluster state; use `TestUtils.cleanUpCluster()` / `seedCluster()` patterns consistently.
 
 ## Release Notes
@@ -57,3 +59,4 @@ Keep changes small, test-backed, and scoped to one behavior or maintenance conce
 - The release workflow resolves the version from the tag or workflow input and passes it into Gradle.
 - `--version` should reflect build metadata, not a hand-maintained string literal.
 - If docs mention a current version, make sure that value is generated or removed so it cannot drift from releases.
+- When preparing a release, prefer adding `release-notes/<version>.md`; the workflow uses that file for a richer release body and falls back to a generated commit summary only when no curated notes file exists.
