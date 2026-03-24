@@ -4,7 +4,7 @@ plugins {
     id 'application'
     id 'idea'
     id 'jacoco'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'com.gradleup.shadow' version '8.3.10'
 }
 
 group = 'com.devshawn'
@@ -62,9 +62,10 @@ dependencies {
     compileOnly 'org.inferred:freebuilder:2.8.0'
     annotationProcessor 'org.inferred:freebuilder:2.8.0'
 
-    testImplementation 'org.apache.groovy:groovy:5.0.4'
+    testImplementation 'org.apache.groovy:groovy:4.0.30'
     testImplementation 'org.spockframework:spock-core:2.4-groovy-4.0'
     testImplementation 'org.skyscreamer:jsonassert:1.5.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.14.1'
 }
 
 jacoco {

@@ -106,7 +106,7 @@ class CustomAclDetailsSpec extends Specification {
         InvalidAclDefinitionException ex = thrown(InvalidAclDefinitionException)
         ex.getField() == "operation"
         ex.getValue() == input
-        ex.getAllowedValues() == ["ALL", "READ", "WRITE", "CREATE", "DELETE", "ALTER", "DESCRIBE", "CLUSTER_ACTION", "DESCRIBE_CONFIGS", "ALTER_CONFIGS", "IDEMPOTENT_WRITE", "CREATE_TOKENS", "DESCRIBE_TOKENS"]
+        ex.getAllowedValues() == ["ALL", "READ", "WRITE", "CREATE", "DELETE", "ALTER", "DESCRIBE", "CLUSTER_ACTION", "DESCRIBE_CONFIGS", "ALTER_CONFIGS", "IDEMPOTENT_WRITE", "CREATE_TOKENS", "DESCRIBE_TOKENS", "TWO_PHASE_COMMIT"]
 
         where:
         input << ["ANY", "UNKNOWN", "not real", "PREFIX", "prefixed", "topic"]
