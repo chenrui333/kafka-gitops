@@ -43,10 +43,13 @@ Keep changes small, test-backed, and scoped to one behavior or maintenance conce
 ## Repo-Specific Conventions
 
 - Root CLI options such as `-f` and `-c` belong before the subcommand.
+- Keep invalid CLI invocations non-zero so scripts and CI can reliably fail on bad arguments.
 - Keep docs and examples aligned with the real CLI surface in `MainCommand.java`.
 - Do not hardcode release versions in source or docs when build metadata can be used instead.
 - Treat Kafka client config as sensitive. Do not log secret-bearing values such as JAAS or password fields.
+- Treat an explicit `--command-config` path as required input: unreadable files should fail fast rather than falling back to ambient environment config.
 - When changing planning or apply behavior, update the matching JSON/YAML fixtures and add focused regression coverage in Spock.
+- Deduplicate generated ACLs in desired-state construction when different generation paths can produce the same binding.
 - Integration-style tests assume the local Kafka fixture is running and may mutate cluster state; use `TestUtils.cleanUpCluster()` / `seedCluster()` patterns consistently.
 
 ## Release Notes

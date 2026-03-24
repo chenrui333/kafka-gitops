@@ -97,19 +97,6 @@
             "name": "test-user-6",
             "aclDetails": {
                 "name": "*",
-                "type": "GROUP",
-                "pattern": "LITERAL",
-                "principal": "User:test",
-                "host": "*",
-                "operation": "READ",
-                "permission": "ALLOW"
-            },
-            "action": "ADD"
-        },
-        {
-            "name": "test-user-7",
-            "aclDetails": {
-                "name": "*",
                 "type": "TOPIC",
                 "pattern": "LITERAL",
                 "principal": "User:test",

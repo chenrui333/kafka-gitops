@@ -1,0 +1,19 @@
+services:
+  test-service:
+    type: application
+    principal: User:test
+    produces:
+      - test-topic
+    consumes:
+      - another-test-topic
+
+customServiceAcls:
+  test-service:
+    duplicate-consumer-read:
+      name: another-test-topic
+      type: TOPIC
+      pattern: LITERAL
+      host: "*"
+      principal: User:test
+      operation: READ
+      permission: ALLOW

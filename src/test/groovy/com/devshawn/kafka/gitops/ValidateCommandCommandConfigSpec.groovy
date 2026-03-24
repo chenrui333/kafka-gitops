@@ -17,6 +17,24 @@ class ValidateCommandCommandConfigSpec extends Specification {
         executeValidate(resourceFile('/plans/simple.yaml'), resourceFile('/command.properties')) == 0
     }
 
+    void 'validate fails when command config file is unreadable'() {
+        setup:
+        ByteArrayOutputStream out = new ByteArrayOutputStream()
+        PrintStream oldOut = System.out
+        System.setOut(new PrintStream(out))
+
+        when:
+        int exitCode = new CommandLine(new MainCommand()).execute('-c', 'missing-command.properties', '-f', resourceFile('/plans/simple.yaml'), 'validate')
+
+        then:
+        exitCode == 2
+        out.toString().contains('[INVALID] The specified command config file could not be read: missing-command.properties')
+        !out.toString().contains('[VALID]')
+
+        cleanup:
+        System.setOut(oldOut)
+    }
+
     private static int executeValidate(String stateFile, String commandConfigFile) {
         ByteArrayOutputStream out = new ByteArrayOutputStream()
         PrintStream oldOut = System.out

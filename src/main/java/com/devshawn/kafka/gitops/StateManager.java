@@ -39,7 +39,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class StateManager {
 
@@ -174,14 +173,14 @@ public class StateManager {
     private void generateConfluentCloudServiceAcls(DesiredState.Builder desiredState, DesiredStateFile desiredStateFile) {
         List<ServiceAccount> serviceAccounts = confluentCloudService.getServiceAccounts();
         desiredStateFile.getServices().forEach((name, service) -> {
-            AtomicReference<Integer> index = new AtomicReference<>(0);
+            AtomicInteger index = new AtomicInteger(0);
 
             Optional<ServiceAccount> serviceAccount = serviceAccounts.stream().filter(it -> it.getName().equals(name)).findFirst();
             String serviceAccountId = serviceAccount.orElseThrow(() -> new ServiceAccountNotFoundException(name)).getId();
 
             service.getAcls(buildGetAclOptions(name)).forEach(aclDetails -> {
                 aclDetails.setPrincipal(String.format("User:%s", serviceAccountId));
-                desiredState.putAcls(String.format("%s-%s", name, index.getAndSet(index.get() + 1)), aclDetails.build());
+                putAclIfAbsent(desiredState, name, index, aclDetails.build());
             });
 
             if (desiredStateFile.getCustomServiceAcls().containsKey(name)) {
@@ -189,7 +188,7 @@ public class StateManager {
                 customAcls.forEach((aclName, customAcl) -> {
                     AclDetails.Builder aclDetails = AclDetails.fromCustomAclDetails(customAcl);
                     aclDetails.setPrincipal(String.format("User:%s", serviceAccountId));
-                    desiredState.putAcls(String.format("%s-%s", name, index.getAndSet(index.get() + 1)), aclDetails.build());
+                    putAclIfAbsent(desiredState, name, index, aclDetails.build());
                 });
             }
         });
@@ -198,7 +197,7 @@ public class StateManager {
     private void generateConfluentCloudUserAcls(DesiredState.Builder desiredState, DesiredStateFile desiredStateFile) {
         List<ServiceAccount> serviceAccounts = confluentCloudService.getServiceAccounts();
         desiredStateFile.getUsers().forEach((name, user) -> {
-            AtomicReference<Integer> index = new AtomicReference<>(0);
+            AtomicInteger index = new AtomicInteger(0);
             String serviceAccountName = String.format("user-%s", name);
 
             Optional<ServiceAccount> serviceAccount = serviceAccounts.stream().filter(it -> it.getName().equals(serviceAccountName)).findFirst();
@@ -206,7 +205,7 @@ public class StateManager {
 
             user.getRoles().forEach(role -> {
                 List<AclDetails.Builder> acls = roleService.getAcls(role, String.format("User:%s", serviceAccountId));
-                acls.forEach(acl -> desiredState.putAcls(String.format("%s-%s", name, index.getAndSet(index.get() + 1)), acl.build()));
+                acls.forEach(acl -> putAclIfAbsent(desiredState, name, index, acl.build()));
             });
 
             if (desiredStateFile.getCustomUserAcls().containsKey(name)) {
@@ -214,7 +213,7 @@ public class StateManager {
                 customAcls.forEach((aclName, customAcl) -> {
                     AclDetails.Builder aclDetails = AclDetails.fromCustomAclDetails(customAcl);
                     aclDetails.setPrincipal(String.format("User:%s", serviceAccountId));
-                    desiredState.putAcls(String.format("%s-%s", name, index.getAndSet(index.get() + 1)), aclDetails.build());
+                    putAclIfAbsent(desiredState, name, index, aclDetails.build());
                 });
             }
         });
@@ -222,9 +221,9 @@ public class StateManager {
 
     private void generateServiceAcls(DesiredState.Builder desiredState, DesiredStateFile desiredStateFile) {
         desiredStateFile.getServices().forEach((name, service) -> {
-            AtomicReference<Integer> index = new AtomicReference<>(0);
+            AtomicInteger index = new AtomicInteger(0);
             service.getAcls(buildGetAclOptions(name)).forEach(aclDetails -> {
-                desiredState.putAcls(String.format("%s-%s", name, index.getAndSet(index.get() + 1)), buildAclDetails(name, aclDetails));
+                putAclIfAbsent(desiredState, name, index, buildAclDetails(name, aclDetails));
             });
 
             if (desiredStateFile.getCustomServiceAcls().containsKey(name)) {
@@ -233,7 +232,7 @@ public class StateManager {
                     AclDetails.Builder aclDetails = AclDetails.fromCustomAclDetails(customAcl);
                     aclDetails.setPrincipal(customAcl.getPrincipal().orElseThrow(() ->
                             new MissingConfigurationException(String.format("Missing principal for custom service ACL %s", aclName))));
-                    desiredState.putAcls(String.format("%s-%s", name, index.getAndSet(index.get() + 1)), aclDetails.build());
+                    putAclIfAbsent(desiredState, name, index, aclDetails.build());
                 });
             }
         });
@@ -241,13 +240,13 @@ public class StateManager {
 
     private void generateUserAcls(DesiredState.Builder desiredState, DesiredStateFile desiredStateFile) {
         desiredStateFile.getUsers().forEach((name, user) -> {
-            AtomicReference<Integer> index = new AtomicReference<>(0);
+            AtomicInteger index = new AtomicInteger(0);
             String userPrincipal = user.getPrincipal()
                     .orElseThrow(() -> new MissingConfigurationException(String.format("Missing principal for user %s", name)));
 
             user.getRoles().forEach(role -> {
                 List<AclDetails.Builder> acls = roleService.getAcls(role, userPrincipal);
-                acls.forEach(acl -> desiredState.putAcls(String.format("%s-%s", name, index.getAndSet(index.get() + 1)), acl.build()));
+                acls.forEach(acl -> putAclIfAbsent(desiredState, name, index, acl.build()));
             });
 
             if (desiredStateFile.getCustomUserAcls().containsKey(name)) {
@@ -255,10 +254,16 @@ public class StateManager {
                 customAcls.forEach((aclName, customAcl) -> {
                     AclDetails.Builder aclDetails = AclDetails.fromCustomAclDetails(customAcl);
                     aclDetails.setPrincipal(customAcl.getPrincipal().orElse(userPrincipal));
-                    desiredState.putAcls(String.format("%s-%s", name, index.getAndSet(index.get() + 1)), aclDetails.build());
+                    putAclIfAbsent(desiredState, name, index, aclDetails.build());
                 });
             }
         });
+    }
+
+    private void putAclIfAbsent(DesiredState.Builder desiredState, String name, AtomicInteger index, AclDetails aclDetails) {
+        if (!desiredState.getAcls().containsValue(aclDetails)) {
+            desiredState.putAcls(String.format("%s-%s", name, index.getAndIncrement()), aclDetails);
+        }
     }
 
     private AclDetails buildAclDetails(String service, AclDetails.Builder aclDetails) {
@@ -291,6 +296,9 @@ public class StateManager {
 
     private void validateCustomAcls(DesiredStateFile desiredStateFile) {
         desiredStateFile.getCustomServiceAcls().forEach((service, details) -> {
+            if (!desiredStateFile.getServices().containsKey(service)) {
+                throw new ValidationException(String.format("customServiceAcls references undefined service: %s", service));
+            }
             try {
                 details.values().forEach(CustomAclDetails::validate);
             } catch (InvalidAclDefinitionException ex) {
@@ -300,6 +308,9 @@ public class StateManager {
         });
 
         desiredStateFile.getCustomUserAcls().forEach((service, details) -> {
+            if (!desiredStateFile.getUsers().containsKey(service)) {
+                throw new ValidationException(String.format("customUserAcls references undefined user: %s", service));
+            }
             try {
                 details.values().forEach(CustomAclDetails::validate);
             } catch (InvalidAclDefinitionException ex) {
@@ -311,17 +322,23 @@ public class StateManager {
 
     private void validateTopics(DesiredStateFile desiredStateFile) {
         Optional<Integer> defaultReplication = StateUtil.fetchReplication(desiredStateFile);
-        if (!defaultReplication.isPresent()) {
-            desiredStateFile.getTopics().forEach((name, details) -> {
-                if (!details.getReplication().isPresent()) {
-                    throw new ValidationException(String.format("Not set: [replication] in state file definition: topics -> %s", name));
-                }
-            });
-        } else {
-            if (defaultReplication.get() < 1) {
-                throw new ValidationException("The default replication factor must be a positive integer.");
-            }
+        if (defaultReplication.isPresent() && defaultReplication.get() < 1) {
+            throw new ValidationException("The default replication factor must be a positive integer.");
         }
+
+        desiredStateFile.getTopics().forEach((name, details) -> {
+            if (details.getPartitions() < 1) {
+                throw new ValidationException(String.format("The topic '%s' must define partitions >= 1.", name));
+            }
+
+            if (!details.getReplication().isPresent() && !defaultReplication.isPresent()) {
+                throw new ValidationException(String.format("Not set: [replication] in state file definition: topics -> %s", name));
+            }
+
+            if (details.getReplication().isPresent() && details.getReplication().get() < 1) {
+                throw new ValidationException(String.format("The topic '%s' must define replication >= 1.", name));
+            }
+        });
     }
 
     private boolean isConfluentCloudEnabled(DesiredStateFile desiredStateFile) {

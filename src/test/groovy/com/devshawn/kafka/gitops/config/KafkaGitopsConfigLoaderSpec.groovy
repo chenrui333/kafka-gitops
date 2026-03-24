@@ -1,5 +1,7 @@
 package com.devshawn.kafka.gitops.config
 
+import com.devshawn.kafka.gitops.exception.MissingConfigurationException
+import com.devshawn.kafka.gitops.exception.ValidationException
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.common.config.SaslConfigs
 import spock.lang.Specification
@@ -57,6 +59,29 @@ class KafkaGitopsConfigLoaderSpec extends Specification {
         sanitized.get(SaslConfigs.SASL_JAAS_CONFIG) == '[REDACTED]'
         sanitized.get('ssl.keystore.password') == '[REDACTED]'
         sanitized.get('basic.auth.user.info') == '[REDACTED]'
+    }
+
+    void 'test command config file must be readable'() {
+        when:
+        KafkaGitopsConfigLoader.load(new File('missing-command.properties'), testEnvironment())
+
+        then:
+        ValidationException ex = thrown(ValidationException)
+        ex.message.contains('The specified command config file could not be read: missing-command.properties')
+    }
+
+    void 'test username and password shortcut requires sasl mechanism'() {
+        when:
+        KafkaGitopsConfigLoader.load(null, [
+                KAFKA_BOOTSTRAP_SERVERS : 'localhost:9092',
+                KAFKA_SECURITY_PROTOCOL : 'SASL_PLAINTEXT',
+                KAFKA_SASL_JAAS_USERNAME: 'test',
+                KAFKA_SASL_JAAS_PASSWORD: 'test-secret',
+        ])
+
+        then:
+        MissingConfigurationException ex = thrown(MissingConfigurationException)
+        ex.message == 'Missing required configuration: KAFKA_SASL_MECHANISM'
     }
 
     private static Map<String, String> testEnvironment(Map<String, String> overrides = [:]) {

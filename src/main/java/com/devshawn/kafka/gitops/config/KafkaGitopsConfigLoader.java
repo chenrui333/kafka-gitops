@@ -1,6 +1,7 @@
 package com.devshawn.kafka.gitops.config;
 
 import com.devshawn.kafka.gitops.exception.MissingConfigurationException;
+import com.devshawn.kafka.gitops.exception.ValidationException;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.common.config.SaslConfigs;
 import org.slf4j.LoggerFactory;
@@ -45,7 +46,7 @@ public class KafkaGitopsConfigLoader {
             properties.load(inputStream);
             properties.forEach( (k, v) -> builder.putConfig(k.toString(), v));
         } catch (IOException ioExc) {
-            log.error("Failed to load config from " + configFile, ioExc);
+            throw new ValidationException(String.format("The specified command config file could not be read: %s (%s)", configFile, ioExc.getMessage()));
         }
     }
 
@@ -103,10 +104,14 @@ public class KafkaGitopsConfigLoader {
     private static void handleAuthentication(AtomicReference<String> username, AtomicReference<String> password, Map<String, Object> config) {
         if (username.get() != null && password.get() != null) {
             // Do we need the Plain or SCRAM module?
+            String saslMechanism = String.valueOf(config.get(SaslConfigs.SASL_MECHANISM));
+            if (config.get(SaslConfigs.SASL_MECHANISM) == null) {
+                throw new MissingConfigurationException("KAFKA_SASL_MECHANISM");
+            }
             String loginModule = null;
-            if (config.get(SaslConfigs.SASL_MECHANISM).equals("PLAIN")) {
+            if (saslMechanism.equals("PLAIN")) {
                 loginModule = "org.apache.kafka.common.security.plain.PlainLoginModule";
-            } else if (config.get(SaslConfigs.SASL_MECHANISM).equals("SCRAM-SHA-256") || config.get(SaslConfigs.SASL_MECHANISM).equals("SCRAM-SHA-512")) {
+            } else if (saslMechanism.equals("SCRAM-SHA-256") || saslMechanism.equals("SCRAM-SHA-512")) {
                 loginModule = "org.apache.kafka.common.security.scram.ScramLoginModule";
             } else {
                 throw new MissingConfigurationException("KAFKA_SASL_MECHANISM");

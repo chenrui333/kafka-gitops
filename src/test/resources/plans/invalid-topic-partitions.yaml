@@ -1,0 +1,4 @@
+topics:
+  test-topic:
+    partitions: 0
+    replication: 1

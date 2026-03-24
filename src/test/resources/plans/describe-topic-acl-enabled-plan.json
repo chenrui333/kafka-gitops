@@ -95,7 +95,7 @@
         {
             "name": "streams-application-2",
             "aclDetails": {
-                "name": "test-topic",
+                "name": "another-test-topic",
                 "type": "TOPIC",
                 "pattern": "LITERAL",
                 "principal": "User:test",
@@ -108,12 +108,12 @@
         {
             "name": "streams-application-3",
             "aclDetails": {
-                "name": "another-test-topic",
+                "name": "streams-application",
                 "type": "TOPIC",
-                "pattern": "LITERAL",
+                "pattern": "PREFIXED",
                 "principal": "User:test",
                 "host": "*",
-                "operation": "DESCRIBE",
+                "operation": "READ",
                 "permission": "ALLOW"
             },
             "action": "ADD"
@@ -126,7 +126,7 @@
                 "pattern": "PREFIXED",
                 "principal": "User:test",
                 "host": "*",
-                "operation": "READ",
+                "operation": "WRITE",
                 "permission": "ALLOW"
             },
             "action": "ADD"
@@ -139,7 +139,7 @@
                 "pattern": "PREFIXED",
                 "principal": "User:test",
                 "host": "*",
-                "operation": "WRITE",
+                "operation": "DESCRIBE",
                 "permission": "ALLOW"
             },
             "action": "ADD"
@@ -152,7 +152,7 @@
                 "pattern": "PREFIXED",
                 "principal": "User:test",
                 "host": "*",
-                "operation": "DESCRIBE",
+                "operation": "DELETE",
                 "permission": "ALLOW"
             },
             "action": "ADD"
@@ -165,7 +165,7 @@
                 "pattern": "PREFIXED",
                 "principal": "User:test",
                 "host": "*",
-                "operation": "DELETE",
+                "operation": "CREATE",
                 "permission": "ALLOW"
             },
             "action": "ADD"
@@ -178,7 +178,7 @@
                 "pattern": "PREFIXED",
                 "principal": "User:test",
                 "host": "*",
-                "operation": "CREATE",
+                "operation": "ALTER",
                 "permission": "ALLOW"
             },
             "action": "ADD"
@@ -191,7 +191,7 @@
                 "pattern": "PREFIXED",
                 "principal": "User:test",
                 "host": "*",
-                "operation": "ALTER",
+                "operation": "ALTER_CONFIGS",
                 "permission": "ALLOW"
             },
             "action": "ADD"
@@ -204,26 +204,13 @@
                 "pattern": "PREFIXED",
                 "principal": "User:test",
                 "host": "*",
-                "operation": "ALTER_CONFIGS",
-                "permission": "ALLOW"
-            },
-            "action": "ADD"
-        },
-        {
-            "name": "streams-application-11",
-            "aclDetails": {
-                "name": "streams-application",
-                "type": "TOPIC",
-                "pattern": "PREFIXED",
-                "principal": "User:test",
-                "host": "*",
                 "operation": "DESCRIBE_CONFIGS",
                 "permission": "ALLOW"
             },
             "action": "ADD"
         },
         {
-            "name": "streams-application-12",
+            "name": "streams-application-11",
             "aclDetails": {
                 "name": "streams-application",
                 "type": "GROUP",
@@ -236,7 +223,7 @@
             "action": "ADD"
         },
         {
-            "name": "streams-application-13",
+            "name": "streams-application-12",
             "aclDetails": {
                 "name": "streams-application",
                 "type": "GROUP",
@@ -249,7 +236,7 @@
             "action": "ADD"
         },
         {
-            "name": "streams-application-14",
+            "name": "streams-application-13",
             "aclDetails": {
                 "name": "streams-application",
                 "type": "GROUP",
@@ -262,7 +249,7 @@
             "action": "ADD"
         },
         {
-            "name": "streams-application-15",
+            "name": "streams-application-14",
             "aclDetails": {
                 "name": "kafka-cluster",
                 "type": "CLUSTER",
@@ -393,58 +380,6 @@
         },
         {
             "name": "kafka-connect-application-9",
-            "aclDetails": {
-                "name": "another-test-topic",
-                "type": "TOPIC",
-                "pattern": "LITERAL",
-                "principal": "User:test",
-                "host": "*",
-                "operation": "WRITE",
-                "permission": "ALLOW"
-            },
-            "action": "ADD"
-        },
-        {
-            "name": "kafka-connect-application-10",
-            "aclDetails": {
-                "name": "another-test-topic",
-                "type": "TOPIC",
-                "pattern": "LITERAL",
-                "principal": "User:test",
-                "host": "*",
-                "operation": "DESCRIBE",
-                "permission": "ALLOW"
-            },
-            "action": "ADD"
-        },
-        {
-            "name": "kafka-connect-application-11",
-            "aclDetails": {
-                "name": "test-topic",
-                "type": "TOPIC",
-                "pattern": "LITERAL",
-                "principal": "User:test",
-                "host": "*",
-                "operation": "READ",
-                "permission": "ALLOW"
-            },
-            "action": "ADD"
-        },
-        {
-            "name": "kafka-connect-application-12",
-            "aclDetails": {
-                "name": "test-topic",
-                "type": "TOPIC",
-                "pattern": "LITERAL",
-                "principal": "User:test",
-                "host": "*",
-                "operation": "DESCRIBE",
-                "permission": "ALLOW"
-            },
-            "action": "ADD"
-        },
-        {
-            "name": "kafka-connect-application-13",
             "aclDetails": {
                 "name": "connect-test-sink",
                 "type": "GROUP",

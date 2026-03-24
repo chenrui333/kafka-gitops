@@ -194,7 +194,15 @@ public class KafkaService {
         try {
             return KafkaAdminClient.create(config.getConfig());
         } catch (KafkaException ex) {
-            throw new KafkaExecutionException("Error thrown when creating Kafka admin client", ex.getCause().getMessage());
+            throw new KafkaExecutionException("Error thrown when creating Kafka admin client", describeException(ex));
         }
+    }
+
+    static String describeException(Throwable throwable) {
+        Throwable failure = throwable.getCause() != null ? throwable.getCause() : throwable;
+        if (failure.getMessage() != null && !failure.getMessage().isBlank()) {
+            return failure.getMessage();
+        }
+        return failure.toString();
     }
 }

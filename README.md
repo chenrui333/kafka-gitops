@@ -43,8 +43,11 @@ For local development and CI, the Gradle build runs on JDK 21.
 Run `kafka-gitops` to view the help output.
 
 ```bash
-Usage: kafka-gitops [-hvV] [--no-delete] [--skip-acls] [-f=<file>] [COMMAND]
+Usage: kafka-gitops [-hvV] [--no-delete] [--skip-acls] [-c=<file>] [-f=<file>]
+                    [COMMAND]
 Manage Kafka resources with a desired state file.
+  -c, --command-config=<file>
+                      Command config properties file.
   -f, --file=<file>   Specify the desired state file.
   -h, --help          Display this help message.
       --no-delete     Disable the ability to delete resources.
@@ -57,6 +60,8 @@ Commands:
   plan      Generate an execution plan of changes to Kafka resources.
   validate  Validates the desired state file.
 ```
+
+Invalid invocations return a non-zero exit code so CI jobs and scripts can fail fast on bad arguments.
 
 ## Configuration
 
@@ -78,6 +83,8 @@ The following configuration is generated:
 
 * `sasl.jaas.config`: `org.apache.kafka.common.security.plain.PlainLoginModule required username="USERNAME" password="PASSWORD";`
 
+When using the username/password shortcut you must also set `KAFKA_SASL_MECHANISM` to a supported mechanism such as `PLAIN`, `SCRAM-SHA-256`, or `SCRAM-SHA-512`.
+
 ### Command Config Files
 
 You can also supply a Kafka client properties file with `--command-config` / `-c`.
@@ -89,6 +96,7 @@ kafka-gitops -c command.properties -f state.yaml validate
 ```
 
 Properties loaded from the command config file are merged with `KAFKA_*` environment variables.
+If `--command-config` is provided, the file must exist and be readable or the command exits with an error before doing any validation, planning, or apply work.
 
 ### Amazon MSK IAM Authentication
 
