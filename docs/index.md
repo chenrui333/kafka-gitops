@@ -48,6 +48,9 @@ kafka-gitops -c command.properties -f state.yaml validate
 ```
 
 Properties from the command config file are merged with `KAFKA_*` environment variables.
+If `--command-config` is provided, the file must exist and be readable or the command exits before doing any validation, planning, or apply work.
+
+If you use the username/password SASL shortcut, also set `KAFKA_SASL_MECHANISM` to a supported value such as `PLAIN`, `SCRAM-SHA-256`, or `SCRAM-SHA-512`.
 
 ### Amazon MSK IAM
 

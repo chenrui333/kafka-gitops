@@ -18,7 +18,7 @@ export XX_CCLOUD_PASSWORD="Your Confluent Cloud password"
 
 # For executing against the cluster
 export KAFKA_BOOTSTRAP_SERVERS="Your Confluent Cloud cluster URL"
-export KAFKA_SASL_JAAS_USERNAME"Your Confluent Cloud API key"
+export KAFKA_SASL_JAAS_USERNAME="Your Confluent Cloud API key"
 export KAFKA_SASL_JAAS_PASSWORD="Your Confluent Cloud API secret"
 export KAFKA_SECURITY_PROTOCOL="SASL_SSL"
 export KAFKA_SASL_MECHANISM="PLAIN"
@@ -32,12 +32,12 @@ export CLICOLOR_FORCE="true"
 
 Once defining services and users, you can generate service accounts. 
 
-**NOTE**: Before running `accounts` or `plan`, ensure you are logged in to Confluent Cloud. Use `ccloud login`.
+**NOTE**: Before running `account` or `plan`, ensure you are logged in to Confluent Cloud. Use `ccloud login`.
 
 Create accounts:
 
 ```bash
-kafka-gitops -f state.yaml accounts
+kafka-gitops -f state.yaml account
 ```
 
 ## Plan

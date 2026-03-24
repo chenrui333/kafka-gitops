@@ -18,23 +18,26 @@ class PlanCommandIntegrationSpec extends Specification {
 
     void 'test various valid plans - #planName'() {
         setup:
-        String planOutputFile = "/tmp/plan.json"
+        File planOutputFile = createPlanOutputFile()
         String file = TestUtils.getResourceFilePath("plans/${planName}.yaml")
         MainCommand mainCommand = new MainCommand()
         CommandLine cmd = new CommandLine(mainCommand)
 
         when:
-        int exitCode = cmd.execute("-f", file, "plan", "-o", planOutputFile)
+        int exitCode = cmd.execute("-f", file, "plan", "-o", planOutputFile.absolutePath)
 
         then:
         exitCode == 0
 
         when:
-        String actualPlan = TestUtils.getFileContent(planOutputFile)
+        String actualPlan = TestUtils.getFileContent(planOutputFile.absolutePath)
         String expectedPlan = TestUtils.getResourceFileContent("plans/${planName}-plan.json")
 
         then:
         JSONAssert.assertEquals(expectedPlan, actualPlan, true)
+
+        cleanup:
+        planOutputFile?.delete()
 
         where:
         planName << [
@@ -61,23 +64,26 @@ class PlanCommandIntegrationSpec extends Specification {
 
     void 'test skip-acls flag'() {
         setup:
-        String planOutputFile = "/tmp/plan.json"
+        File planOutputFile = createPlanOutputFile()
         String file = TestUtils.getResourceFilePath("plans/${planName}.yaml")
         MainCommand mainCommand = new MainCommand()
         CommandLine cmd = new CommandLine(mainCommand)
 
         when:
-        int exitCode = cmd.execute("-f", file, "--skip-acls", "plan", "-o", planOutputFile)
+        int exitCode = cmd.execute("-f", file, "--skip-acls", "plan", "-o", planOutputFile.absolutePath)
 
         then:
         exitCode == 0
 
         when:
-        String actualPlan = TestUtils.getFileContent(planOutputFile)
+        String actualPlan = TestUtils.getFileContent(planOutputFile.absolutePath)
         String expectedPlan = TestUtils.getResourceFileContent("plans/${planName}-plan.json")
 
         then:
         JSONAssert.assertEquals(expectedPlan, actualPlan, true)
+
+        cleanup:
+        planOutputFile?.delete()
 
         where:
         planName << [
@@ -89,7 +95,7 @@ class PlanCommandIntegrationSpec extends Specification {
         setup:
         TestUtils.cleanUpCluster()
         TestUtils.seedCluster()
-        String planOutputFile = "/tmp/plan.json"
+        File planOutputFile = createPlanOutputFile()
         String file = TestUtils.getResourceFilePath("plans/${planName}.yaml")
         MainCommand mainCommand = new MainCommand()
         CommandLine cmd = new CommandLine(mainCommand)
@@ -97,20 +103,23 @@ class PlanCommandIntegrationSpec extends Specification {
         when:
         int exitCode
         if (deleteDisabled) {
-            exitCode = cmd.execute("-f", file, "--no-delete", "plan", "-o", planOutputFile)
+            exitCode = cmd.execute("-f", file, "--no-delete", "plan", "-o", planOutputFile.absolutePath)
         } else {
-            exitCode = cmd.execute("-f", file, "plan", "-o", planOutputFile)
+            exitCode = cmd.execute("-f", file, "plan", "-o", planOutputFile.absolutePath)
         }
 
         then:
         exitCode == 0
 
         when:
-        String actualPlan = TestUtils.getFileContent(planOutputFile)
+        String actualPlan = TestUtils.getFileContent(planOutputFile.absolutePath)
         String expectedPlan = TestUtils.getResourceFileContent("plans/${planName}-plan.json")
 
         then:
         JSONAssert.assertEquals(expectedPlan, actualPlan, true)
+
+        cleanup:
+        planOutputFile?.delete()
 
         where:
         planName                            | deleteDisabled
@@ -129,7 +138,7 @@ class PlanCommandIntegrationSpec extends Specification {
         setup:
         TestUtils.cleanUpCluster()
         TestUtils.seedCluster()
-        String planOutputFile = "/tmp/plan.json"
+        File planOutputFile = createPlanOutputFile()
         String file = TestUtils.getResourceFilePath("plans/${planName}.yaml")
         MainCommand mainCommand = new MainCommand()
         CommandLine cmd = new CommandLine(mainCommand)
@@ -137,9 +146,9 @@ class PlanCommandIntegrationSpec extends Specification {
         when:
         int exitCode = -1
         if (includeUnchanged) {
-            exitCode = cmd.execute("-f", file, "plan", "--include-unchanged", "-o", planOutputFile)
+            exitCode = cmd.execute("-f", file, "plan", "--include-unchanged", "-o", planOutputFile.absolutePath)
         } else {
-            exitCode = cmd.execute("-f", file, "plan", "-o", planOutputFile)
+            exitCode = cmd.execute("-f", file, "plan", "-o", planOutputFile.absolutePath)
         }
 
         then:
@@ -147,11 +156,14 @@ class PlanCommandIntegrationSpec extends Specification {
 
         when:
         String expected = includeUnchanged ? "${planName}-include-unchanged" : planName
-        String actualPlan = TestUtils.getFileContent(planOutputFile)
+        String actualPlan = TestUtils.getFileContent(planOutputFile.absolutePath)
         String expectedPlan = TestUtils.getResourceFileContent("plans/${expected}-plan.json")
 
         then:
         JSONAssert.assertEquals(expectedPlan, actualPlan, true)
+
+        cleanup:
+        planOutputFile?.delete()
 
         where:
         planName     | includeUnchanged
@@ -249,7 +261,7 @@ class PlanCommandIntegrationSpec extends Specification {
         ByteArrayOutputStream out = new ByteArrayOutputStream()
         PrintStream oldOut = System.out
         System.setOut(new PrintStream(out))
-        String planOutputFile = "/tmp/plan.json"
+        File planOutputFile = createPlanOutputFile()
         String file = TestUtils.getResourceFilePath("plans/${planName}.yaml")
         MainCommand mainCommand = new MainCommand()
         CommandLine cmd = new CommandLine(mainCommand)
@@ -257,9 +269,9 @@ class PlanCommandIntegrationSpec extends Specification {
         when:
         int exitCode = -1
         if (includeUnchanged) {
-            exitCode = cmd.execute("-f", file, "plan", "--include-unchanged", "-o", planOutputFile)
+            exitCode = cmd.execute("-f", file, "plan", "--include-unchanged", "-o", planOutputFile.absolutePath)
         } else {
-            exitCode = cmd.execute("-f", file, "plan", "-o", planOutputFile)
+            exitCode = cmd.execute("-f", file, "plan", "-o", planOutputFile.absolutePath)
         }
 
         then:
@@ -268,13 +280,14 @@ class PlanCommandIntegrationSpec extends Specification {
 
         when:
         String expected = includeUnchanged ? "${planName}-include-unchanged" : planName
-        String actualPlan = TestUtils.getFileContent(planOutputFile)
+        String actualPlan = TestUtils.getFileContent(planOutputFile.absolutePath)
         String expectedPlan = TestUtils.getResourceFileContent("plans/${expected}-plan.json")
 
         then:
         JSONAssert.assertEquals(expectedPlan, actualPlan, true)
 
         cleanup:
+        planOutputFile?.delete()
         System.setOut(oldOut)
 
         where:
@@ -305,5 +318,9 @@ class PlanCommandIntegrationSpec extends Specification {
         cleanup:
         planOutputFile?.delete()
         TestUtils.cleanUpCluster()
+    }
+
+    private static File createPlanOutputFile() {
+        return File.createTempFile('plan-command-', '.json')
     }
 }

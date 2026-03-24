@@ -33,7 +33,7 @@ To give an overview, throughout this guide, this will create:
 
 - A topic named `test-topic`
 - A service account named `test-service`
-- An `WRITE` ACL for topic `test-topic` tied to the service account `test-service`
+- A `WRITE` ACL for topic `test-topic` tied to the service account `test-service`
 
 ## Configuration
 
@@ -45,6 +45,8 @@ To use `kafka-gitops` with Confluent Cloud, you'll need to set a few environment
 - `KAFKA_SECURITY_PROTOCOL`: `SASL_SSL`
 - `KAFKA_SASL_MECHANISM`: `PLAIN`
 - `KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM`: `HTTPS`
+
+The username/password shortcut requires `KAFKA_SASL_MECHANISM`, so keep that variable set when using the Confluent Cloud API key and secret pair.
 
 Additionally, you'll need to login to the `ccloud` tool. You can automate this by setting the following environment variables:
 

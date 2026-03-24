@@ -21,8 +21,11 @@ kafka-gitops
 You should see output similar to the following:
 
 ```text
-Usage: kafka-gitops [-hvV] [--no-delete] [-f=<file>] [COMMAND]
+Usage: kafka-gitops [-hvV] [--no-delete] [--skip-acls] [-c=<file>] [-f=<file>]
+                    [COMMAND]
 Manage Kafka resources with a desired state file.
+  -c, --command-config=<file>
+                      Command config properties file.
   -f, --file=<file>   Specify the desired state file.
   -h, --help          Display this help message.
       --no-delete     Disable the ability to delete resources.
@@ -51,5 +54,13 @@ The release zip is written to `build/distributions/kafka-gitops.zip`.
 We publish a Docker image at [`devshawn/kafka-gitops`](https://hub.docker.com/r/devshawn/kafka-gitops).
 
 The Docker Hub namespace has not moved yet, so use that image name even though the source repository now lives under `chenrui333/kafka-gitops`.
+
+The image runs as an unprivileged `kafka-gitops` user and uses `kafka-gitops` as the container entrypoint.
+
+Example:
+
+```bash
+docker run --rm devshawn/kafka-gitops --version
+```
 
 If you need Amazon MSK IAM authentication, copy or mount the AWS MSK IAM auth plugin jar into the container and set `CLASSPATH` to that jar before running `kafka-gitops`.
