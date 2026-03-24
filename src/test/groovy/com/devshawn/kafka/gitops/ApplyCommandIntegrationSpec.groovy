@@ -175,7 +175,7 @@ class ApplyCommandIntegrationSpec extends Specification {
 
         when:
         def topicDescriptions = TestUtils.withAdminClient { adminClient ->
-            TestUtils.waitFor(adminClient.describeTopics(['topic-with-configs-1', 'topic-with-configs-2'] as Set).all())
+            TestUtils.waitFor(adminClient.describeTopics(['topic-with-configs-1', 'topic-with-configs-2'] as Set).allTopicNames())
         }
 
         then:

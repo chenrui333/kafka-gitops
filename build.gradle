@@ -4,7 +4,7 @@ plugins {
     id 'application'
     id 'idea'
     id 'jacoco'
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'com.gradleup.shadow' version '8.3.10'
 }
 
 group = 'com.devshawn'
@@ -14,9 +14,9 @@ version = providers.gradleProperty('releaseVersion')
         .get()
 
 def generatedResourcesDir = layout.buildDirectory.dir('generated-resources/main')
-def jacksonVersion = '2.17.2'
-def slf4jVersion = '1.7.36'
-def logbackVersion = '1.2.13'
+def jacksonVersion = '2.21.2'
+def slf4jVersion = '2.0.17'
+def logbackVersion = '1.5.32'
 
 sourceSets {
     main {
@@ -49,12 +49,12 @@ def writeVersionProperties = tasks.register('writeVersionProperties') {
 }
 
 dependencies {
-    implementation 'org.apache.kafka:kafka-clients:3.9.1'
+    implementation 'org.apache.kafka:kafka-clients:4.2.0'
     implementation platform("com.fasterxml.jackson:jackson-bom:${jacksonVersion}")
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
-    implementation 'info.picocli:picocli:4.1.4'
+    implementation 'info.picocli:picocli:4.7.7'
     implementation "org.slf4j:slf4j-api:${slf4jVersion}"
     implementation "ch.qos.logback:logback-classic:${logbackVersion}"
     implementation "ch.qos.logback:logback-core:${logbackVersion}"
@@ -64,7 +64,8 @@ dependencies {
 
     testImplementation 'org.apache.groovy:groovy:4.0.30'
     testImplementation 'org.spockframework:spock-core:2.4-groovy-4.0'
-    testImplementation 'org.skyscreamer:jsonassert:1.5.0'
+    testImplementation 'org.skyscreamer:jsonassert:1.5.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.14.1'
 }
 
 jacoco {
