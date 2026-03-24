@@ -63,7 +63,7 @@ jobs:
           name: Release ${{ steps.release_target.outputs.version }}
           body_path: ./build/release-notes.md
           fail_on_unmatched_files: true
-          files: ./build/distributions/kafka-gitops.zip
+          files: ./build/distributions/*.zip
 
       - name: Log in to Docker Hub
         if: ${{ env.DOCKER_USERNAME != '' && env.DOCKER_PASSWORD != '' }}
