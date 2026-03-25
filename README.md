@@ -34,9 +34,12 @@ Documentation on how to install and use this tool can be found on our [documenta
 
 ## Compatibility
 
-The current build baseline targets JDK 21 and Kafka 3.9.1 client compatibility.
+The Gradle build targets JDK 21 and `kafka-clients` 4.2.0.
 
-For local development and CI, the Gradle build runs on JDK 21.
+Broker compatibility is validated by the automated test fixtures against:
+
+- a Kafka 3.9-compatible ZooKeeper fixture (`docker/docker-compose.yml`)
+- a Kafka 4-compatible KRaft fixture (`docker/docker-compose.kafka4.yml`)
 
 ## Usage
 
@@ -119,10 +122,16 @@ The container image supports the same approach: copy or mount the AWS MSK IAM au
 
 ### Running Tests Locally
 
-Start the local Kafka fixture:
+Start the Kafka 3.9-compatible local Kafka fixture:
 
 ```bash
 docker compose -f docker/docker-compose.yml up -d
+```
+
+For the Kafka 4-compatible broker lane, start the KRaft fixture instead:
+
+```bash
+docker compose -f docker/docker-compose.kafka4.yml up -d
 ```
 
 Then run the test suite:

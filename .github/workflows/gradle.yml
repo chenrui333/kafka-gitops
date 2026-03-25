@@ -4,7 +4,16 @@ on: push
 
 jobs:
   build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - broker_label: kafka39
+            compose_file: docker/docker-compose.yml
+          - broker_label: kafka40
+            compose_file: docker/docker-compose.kafka4.yml
     runs-on: ubuntu-latest
+    name: build (${{ matrix.broker_label }})
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -17,18 +26,24 @@ jobs:
           cache: gradle
 
       - name: Start docker compose for integration tests
-        run: docker compose -f docker/docker-compose.yml up -d
+        run: docker compose -f "${{ matrix.compose_file }}" up -d
 
       - name: Build with Gradle
         run: ./gradlew --info build jacocoTestReport
 
       - name: Upload coverage to Codecov
+        if: matrix.broker_label == 'kafka40'
         uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # v5.5.3
         with:
           files: ./build/reports/jacoco/report.xml
 
       - name: Upload build artifact
+        if: matrix.broker_label == 'kafka40'
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: kafka-gitops.jar
+          name: kafka-gitops-${{ matrix.broker_label }}.jar
           path: build/libs/kafka-gitops-all.jar
+
+      - name: Stop docker compose
+        if: always()
+        run: docker compose -f "${{ matrix.compose_file }}" down -v

@@ -10,7 +10,10 @@ Keep changes small, test-backed, and scoped to one behavior or maintenance conce
 
 - Java: JDK 21
 - Build: Gradle wrapper (`./gradlew`)
-- Local Kafka fixture: `docker compose -f docker/docker-compose.yml up -d`
+- Compatibility baseline: `kafka-clients` 4.2.0, validated against Kafka 3.9-compatible and Kafka 4-compatible broker fixtures
+- Local Kafka fixture:
+  - Kafka 3.9 broker lane: `docker compose -f docker/docker-compose.yml up -d`
+  - Kafka 4 broker lane: `docker compose -f docker/docker-compose.kafka4.yml up -d`
 
 ## Repository Layout
 
