@@ -60,6 +60,8 @@ If `--command-config` is provided, the file must exist and be readable or the co
 
 If you use the username/password SASL shortcut, also set `KAFKA_SASL_MECHANISM` to a supported value such as `PLAIN`, `SCRAM-SHA-256`, or `SCRAM-SHA-512`.
 
+For mechanisms such as Kerberos `GSSAPI`, skip the username/password shortcut and provide the native Kafka client settings directly, for example `KAFKA_SASL_MECHANISM=GSSAPI` plus `KAFKA_SASL_JAAS_CONFIG=...`.
+
 ### Amazon MSK IAM
 
 `kafka-gitops` supports Amazon MSK clusters that use the `AWS_MSK_IAM` SASL mechanism when the AWS MSK IAM auth plugin jar is on the Java classpath.

@@ -84,6 +84,20 @@ class KafkaGitopsConfigLoaderSpec extends Specification {
         ex.message == 'Missing required configuration: KAFKA_SASL_MECHANISM'
     }
 
+    void 'test direct gssapi configuration passes through unchanged'() {
+        when:
+        KafkaGitopsConfig config = KafkaGitopsConfigLoader.load(null, [
+                KAFKA_BOOTSTRAP_SERVERS : 'localhost:9092',
+                KAFKA_SECURITY_PROTOCOL : 'SASL_PLAINTEXT',
+                KAFKA_SASL_MECHANISM    : 'GSSAPI',
+                KAFKA_SASL_JAAS_CONFIG  : 'com.sun.security.auth.module.Krb5LoginModule required useKeyTab=true keyTab="/tmp/test.keytab" principal="user@EXAMPLE.COM";',
+        ])
+
+        then:
+        config.config.get(SaslConfigs.SASL_MECHANISM) == 'GSSAPI'
+        config.config.get(SaslConfigs.SASL_JAAS_CONFIG) == 'com.sun.security.auth.module.Krb5LoginModule required useKeyTab=true keyTab="/tmp/test.keytab" principal="user@EXAMPLE.COM";'
+    }
+
     private static Map<String, String> testEnvironment(Map<String, String> overrides = [:]) {
         return [
                 KAFKA_BOOTSTRAP_SERVERS: 'localhost:9092',

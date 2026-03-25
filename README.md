@@ -97,6 +97,8 @@ The following configuration is generated:
 
 When using the username/password shortcut you must also set `KAFKA_SASL_MECHANISM` to a supported mechanism such as `PLAIN`, `SCRAM-SHA-256`, or `SCRAM-SHA-512`.
 
+For mechanisms such as Kerberos `GSSAPI`, skip the username/password shortcut and provide the native Kafka client settings directly, for example `KAFKA_SASL_MECHANISM=GSSAPI` plus `KAFKA_SASL_JAAS_CONFIG=...`.
+
 ### Command Config Files
 
 You can also supply a Kafka client properties file with `--command-config` / `-c`.
