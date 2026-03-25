@@ -55,16 +55,6 @@ jobs:
       - name: Generate release notes body
         run: ./scripts/write_release_notes.sh "${{ steps.release_target.outputs.version }}" > build/release-notes.md
 
-      - name: Create draft release
-        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
-        with:
-          draft: true
-          tag_name: ${{ steps.release_target.outputs.version }}
-          name: Release ${{ steps.release_target.outputs.version }}
-          body_path: ./build/release-notes.md
-          fail_on_unmatched_files: true
-          files: ./build/distributions/*.zip
-
       - name: Log in to Docker Hub
         if: ${{ env.DOCKER_USERNAME != '' && env.DOCKER_PASSWORD != '' }}
         uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
@@ -88,4 +78,6 @@ jobs:
           tag_name: ${{ steps.release_target.outputs.version }}
           name: Release ${{ steps.release_target.outputs.version }}
           body_path: ./build/release-notes.md
+          fail_on_unmatched_files: true
+          files: ./build/distributions/kafka-gitops-${{ steps.release_target.outputs.version }}.zip
           make_latest: "true"
