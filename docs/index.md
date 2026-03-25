@@ -40,6 +40,8 @@ Start with:
 
 To bootstrap an existing cluster into a starting file, run `kafka-gitops import -o imported-state.yaml`. The generated file captures topics and raw ACLs as `users` plus `customUserAcls`; it does not infer higher-level service definitions.
 
+For environment-specific state, keep using separate generated state files per environment. `settings.files` can split services, topics, and users into separate source files, and shared plus environment-specific YAML can be layered outside `kafka-gitops` before running `plan` or `apply`.
+
 ## Configuration
 
 Kafka client properties are configured through `KAFKA_*` environment variables.

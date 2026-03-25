@@ -41,6 +41,22 @@ settings:
         - team-a.
 ```
 
+### Environment-Specific State
+
+`kafka-gitops` does not implement built-in overlay merge semantics across multiple full state files.
+
+Supported composition patterns are:
+
+- use `settings.files` to split `services`, `topics`, and `users` into separate source files
+- generate one final state file per environment outside `kafka-gitops`, then run `plan` or `apply` against that file
+
+For example, you can compose shared and environment-specific YAML before invoking the CLI:
+
+```bash
+yq eval-all '. as $item ireduce ({}; . * $item )' state.base.yaml state.dev.yaml > state.generated.dev.yaml
+kafka-gitops -f state.generated.dev.yaml plan
+```
+
 ## Topics
 
 **Synopsis**: Define the topics you would like on your cluster and their configuration.
