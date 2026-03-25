@@ -203,6 +203,10 @@ customServiceAcls:
       permission: ALLOW
 ```
 
+!!! note
+
+    When using Confluent Cloud, the `customServiceAcls` key must still match a service defined under `services`, and that service name must match the existing Confluent Cloud service account name. The `principal` value in the custom ACL is ignored and replaced with the live service-account ID.
+
 ## Custom User ACLs
 
 **Synopsis**: Define custom ACLs for a specific user. 
