@@ -2,6 +2,7 @@ package com.devshawn.kafka.gitops;
 
 import com.devshawn.kafka.gitops.cli.AccountCommand;
 import com.devshawn.kafka.gitops.cli.ApplyCommand;
+import com.devshawn.kafka.gitops.cli.ImportCommand;
 import com.devshawn.kafka.gitops.cli.PlanCommand;
 import com.devshawn.kafka.gitops.cli.ValidateCommand;
 import picocli.CommandLine;
@@ -17,6 +18,7 @@ import java.util.concurrent.Callable;
         subcommands = {
                 AccountCommand.class,
                 ApplyCommand.class,
+                ImportCommand.class,
                 PlanCommand.class,
                 ValidateCommand.class
         },

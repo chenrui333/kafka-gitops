@@ -7,12 +7,13 @@ import com.devshawn.kafka.gitops.config.KafkaGitopsConfigLoader;
 import com.devshawn.kafka.gitops.config.ManagerConfig;
 import com.devshawn.kafka.gitops.domain.confluent.ServiceAccount;
 import com.devshawn.kafka.gitops.domain.options.GetAclOptions;
+import com.devshawn.kafka.gitops.domain.state.CustomAclDetails;
 import com.devshawn.kafka.gitops.domain.plan.DesiredPlan;
 import com.devshawn.kafka.gitops.domain.state.AclDetails;
-import com.devshawn.kafka.gitops.domain.state.CustomAclDetails;
 import com.devshawn.kafka.gitops.domain.state.DesiredState;
 import com.devshawn.kafka.gitops.domain.state.DesiredStateFile;
 import com.devshawn.kafka.gitops.domain.state.TopicDetails;
+import com.devshawn.kafka.gitops.domain.state.UserDetails;
 import com.devshawn.kafka.gitops.domain.state.service.KafkaStreamsService;
 import com.devshawn.kafka.gitops.exception.ConfluentCloudException;
 import com.devshawn.kafka.gitops.exception.InvalidAclDefinitionException;
@@ -31,13 +32,22 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import org.apache.kafka.clients.admin.Config;
+import org.apache.kafka.clients.admin.ConfigEntry;
+import org.apache.kafka.clients.admin.TopicDescription;
+import org.apache.kafka.common.acl.AclBinding;
+import org.apache.kafka.common.config.ConfigResource;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class StateManager {
@@ -131,6 +141,13 @@ public class StateManager {
         }
     }
 
+    public DesiredStateFile importState() {
+        DesiredStateFile.Builder desiredStateFile = new DesiredStateFile.Builder();
+        exportTopics(desiredStateFile);
+        exportAcls(desiredStateFile);
+        return desiredStateFile.build();
+    }
+
     private void createServiceAccount(String name, List<ServiceAccount> serviceAccounts, AtomicInteger count, boolean isUser) {
         String fullName = isUser ? String.format("user-%s", name) : name;
         if (serviceAccounts.stream().noneMatch(it -> it.getName().equals(fullName))) {
@@ -157,6 +174,93 @@ public class StateManager {
         }
 
         return desiredState.build();
+    }
+
+    private void exportTopics(DesiredStateFile.Builder desiredStateFile) {
+        Map<String, TopicDescription> topics = new TreeMap<>(kafkaService.getTopics());
+        if (topics.isEmpty()) {
+            return;
+        }
+
+        Map<ConfigResource, Config> topicConfigs = kafkaService.describeConfigsForTopics(new ArrayList<>(topics.keySet()));
+
+        topics.forEach((topicName, topicDescription) -> {
+            TopicDetails.Builder topicDetails = new TopicDetails.Builder()
+                    .setPartitions(topicDescription.partitions().size())
+                    .setReplication(topicDescription.partitions().stream()
+                            .findFirst()
+                            .map(topicPartitionInfo -> topicPartitionInfo.replicas().size())
+                            .orElse(1));
+
+            Config config = topicConfigs.get(new ConfigResource(ConfigResource.Type.TOPIC, topicName));
+            if (config != null) {
+                config.entries().stream()
+                        .filter(configEntry -> configEntry.source() == ConfigEntry.ConfigSource.DYNAMIC_TOPIC_CONFIG)
+                        .sorted(Comparator.comparing(ConfigEntry::name))
+                        .forEach(configEntry -> topicDetails.putConfigs(configEntry.name(), configEntry.value()));
+            }
+
+            desiredStateFile.putTopics(topicName, topicDetails.build());
+        });
+    }
+
+    private void exportAcls(DesiredStateFile.Builder desiredStateFile) {
+        List<AclBinding> existingAcls = kafkaService.getAcls().stream()
+                .sorted(Comparator.comparing((AclBinding aclBinding) -> aclBinding.entry().principal())
+                        .thenComparing(aclBinding -> aclBinding.pattern().resourceType().name())
+                        .thenComparing(aclBinding -> aclBinding.pattern().name())
+                        .thenComparing(aclBinding -> aclBinding.pattern().patternType().name())
+                        .thenComparing(aclBinding -> aclBinding.entry().operation().name())
+                        .thenComparing(aclBinding -> aclBinding.entry().permissionType().name())
+                        .thenComparing(aclBinding -> aclBinding.entry().host()))
+                .toList();
+
+        Map<String, String> userKeysByPrincipal = new LinkedHashMap<>();
+        Map<String, UserDetails> users = new LinkedHashMap<>();
+        Map<String, Map<String, CustomAclDetails>> customUserAcls = new LinkedHashMap<>();
+        Map<String, Integer> aclIndices = new LinkedHashMap<>();
+
+        existingAcls.forEach(aclBinding -> {
+            AclDetails aclDetails = AclDetails.fromAclBinding(aclBinding);
+            String userKey = userKeysByPrincipal.computeIfAbsent(aclDetails.getPrincipal(), principal -> {
+                String generatedKey = generateUserKey(principal, users.keySet());
+                users.put(generatedKey, new UserDetails.Builder().setPrincipal(principal).build());
+                return generatedKey;
+            });
+
+            int aclIndex = aclIndices.getOrDefault(userKey, 0);
+            aclIndices.put(userKey, aclIndex + 1);
+
+            CustomAclDetails customAclDetails = new CustomAclDetails.Builder()
+                    .setName(aclDetails.getName())
+                    .setType(aclDetails.getType())
+                    .setPattern(aclDetails.getPattern())
+                    .setHost(aclDetails.getHost())
+                    .setOperation(aclDetails.getOperation())
+                    .setPermission(aclDetails.getPermission())
+                    .build();
+
+            customUserAcls.computeIfAbsent(userKey, ignored -> new LinkedHashMap<>())
+                    .put(String.format("acl-%s", aclIndex), customAclDetails);
+        });
+
+        desiredStateFile.putAllUsers(users);
+        desiredStateFile.putAllCustomUserAcls(customUserAcls);
+    }
+
+    private String generateUserKey(String principal, java.util.Set<String> existingKeys) {
+        String base = principal.startsWith("User:") ? principal.substring("User:".length()) : principal;
+        base = base.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-").replaceAll("(^-+|-+$)", "");
+        if (base.isBlank()) {
+            base = "imported-user";
+        }
+
+        String candidate = base;
+        int suffix = 1;
+        while (existingKeys.contains(candidate)) {
+            candidate = String.format("%s-%s", base, suffix++);
+        }
+        return candidate;
     }
 
     private void generateTopicsState(DesiredState.Builder desiredState, DesiredStateFile desiredStateFile) {

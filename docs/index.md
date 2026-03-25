@@ -17,6 +17,7 @@ The tool also generates the ACLs needed for common Kafka application types. By d
 - Built for CI/CD pipelines that validate and apply Kafka changes from code.
 - Declarative desired-state management for topics, services, users, and ACLs.
 - Plan and apply workflows with idempotent execution.
+- Bootstrap existing clusters into a valid starting state file with `import`.
 - Support for self-hosted Kafka, managed Kafka, and Confluent Cloud.
 - Continue-from-failure behavior: fix the issue, regenerate a plan, and resume safely.
 
@@ -36,6 +37,8 @@ Start with:
 - [Installation](installation.md) for binary, source, and container usage.
 - [Quick Start](quick-start.md) for a local walkthrough.
 - [Specification](specification.md) for the desired state file format.
+
+To bootstrap an existing cluster into a starting file, run `kafka-gitops import -o imported-state.yaml`. The generated file captures topics and raw ACLs as `users` plus `customUserAcls`; it does not infer higher-level service definitions.
 
 ## Configuration
 

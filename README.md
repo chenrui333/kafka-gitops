@@ -60,11 +60,20 @@ Manage Kafka resources with a desired state file.
 Commands:
   account   Create Confluent Cloud service accounts.
   apply     Apply changes to Kafka resources.
+  import    Import current Kafka topics and ACLs into a bootstrap state file.
   plan      Generate an execution plan of changes to Kafka resources.
   validate  Validates the desired state file.
 ```
 
 Invalid invocations return a non-zero exit code so CI jobs and scripts can fail fast on bad arguments.
+
+To bootstrap an existing cluster into an initial state file, run:
+
+```bash
+kafka-gitops import -o imported-state.yaml
+```
+
+The imported file captures current topics and raw ACLs as `users` plus `customUserAcls`; it does not try to infer higher-level service definitions.
 
 ## Configuration
 
