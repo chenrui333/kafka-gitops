@@ -4,6 +4,7 @@ import com.devshawn.kafka.gitops.config.KafkaGitopsConfig;
 import com.devshawn.kafka.gitops.domain.plan.TopicConfigPlan;
 import com.devshawn.kafka.gitops.domain.plan.TopicDetailsPlan;
 import com.devshawn.kafka.gitops.exception.KafkaExecutionException;
+import com.devshawn.kafka.gitops.exception.TopicAlreadyExistsException;
 import com.devshawn.kafka.gitops.exception.ValidationException;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AlterConfigOp;
@@ -23,6 +24,7 @@ import org.apache.kafka.common.acl.AclBindingFilter;
 import org.apache.kafka.common.acl.AclOperation;
 import org.apache.kafka.common.acl.AclPermissionType;
 import org.apache.kafka.common.config.ConfigResource;
+import org.apache.kafka.common.errors.TopicExistsException;
 import org.apache.kafka.common.resource.PatternType;
 import org.apache.kafka.common.resource.ResourcePatternFilter;
 import org.apache.kafka.common.resource.ResourceType;
@@ -80,7 +82,14 @@ public class KafkaService {
             NewTopic newTopic = new NewTopic(topicName, topicDetailsPlan.getPartitions().get(), topicDetailsPlan.getReplication().get().shortValue());
             newTopic.configs(topicConfigPlans.stream().collect(Collectors.toMap(TopicConfigPlan::getKey, topicConfigPlan -> topicConfigPlan.getValue().get())));
             adminClient.createTopics(Collections.singletonList(newTopic)).all().get();
-        } catch (InterruptedException | ExecutionException | NoSuchElementException ex) {
+        } catch (InterruptedException ex) {
+            throw new KafkaExecutionException("Error thrown when attempting to create a Kafka topic", ex.getMessage());
+        } catch (ExecutionException ex) {
+            if (ex.getCause() instanceof TopicExistsException) {
+                throw new TopicAlreadyExistsException(topicName, describeException(ex));
+            }
+            throw new KafkaExecutionException("Error thrown when attempting to create a Kafka topic", ex.getMessage());
+        } catch (NoSuchElementException ex) {
             throw new KafkaExecutionException("Error thrown when attempting to create a Kafka topic", ex.getMessage());
         }
     }

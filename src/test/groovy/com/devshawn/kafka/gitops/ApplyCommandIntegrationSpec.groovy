@@ -3,6 +3,7 @@ package com.devshawn.kafka.gitops
 import picocli.CommandLine
 import spock.lang.Specification
 import spock.lang.Unroll
+import spock.util.concurrent.PollingConditions
 
 @Unroll
 class ApplyCommandIntegrationSpec extends Specification {
@@ -181,6 +182,40 @@ class ApplyCommandIntegrationSpec extends Specification {
         then:
         topicDescriptions['topic-with-configs-1'].partitions().every { it.replicas().size() == 1 }
         topicDescriptions['topic-with-configs-2'].partitions().every { it.replicas().size() == 1 }
+    }
+
+    void 'test stale add plan applies successfully when topic already exists'() {
+        setup:
+        ByteArrayOutputStream out = new ByteArrayOutputStream()
+        PrintStream oldOut = System.out
+        System.setOut(new PrintStream(out))
+        String stateFile = TestUtils.getResourceFilePath('plans/simple.yaml')
+        String planFile = TestUtils.getResourceFilePath('plans/simple-plan.json')
+        MainCommand mainCommand = new MainCommand()
+        CommandLine cmd = new CommandLine(mainCommand)
+
+        TestUtils.withAdminClient { adminClient ->
+            TestUtils.createTopic('test-topic', 1, adminClient)
+        }
+
+        when:
+        int exitCode = cmd.execute('-f', stateFile, 'apply', '-p', planFile)
+
+        then:
+        exitCode == 0
+
+        then:
+        def conditions = new PollingConditions(timeout: 15, initialDelay: 1, factor: 1.25)
+        conditions.eventually {
+            def topicDescriptions = TestUtils.withAdminClient { adminClient ->
+                TestUtils.waitFor(adminClient.describeTopics(['test-topic'] as Set).allTopicNames())
+            }
+            assert topicDescriptions['test-topic'].partitions().size() == 6
+        }
+
+        cleanup:
+        System.setOut(oldOut)
+        TestUtils.cleanUpCluster()
     }
 
 }

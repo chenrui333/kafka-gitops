@@ -6,10 +6,13 @@ import com.devshawn.kafka.gitops.domain.plan.TopicConfigPlan;
 import com.devshawn.kafka.gitops.domain.plan.TopicDetailsPlan;
 import com.devshawn.kafka.gitops.domain.plan.TopicPlan;
 import com.devshawn.kafka.gitops.enums.PlanAction;
+import com.devshawn.kafka.gitops.exception.TopicAlreadyExistsException;
+import com.devshawn.kafka.gitops.exception.ValidationException;
 import com.devshawn.kafka.gitops.service.KafkaService;
 import com.devshawn.kafka.gitops.util.LogUtil;
 import org.apache.kafka.clients.admin.AlterConfigOp;
 import org.apache.kafka.clients.admin.ConfigEntry;
+import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.common.Node;
 import org.apache.kafka.common.config.ConfigResource;
 
@@ -30,7 +33,11 @@ public class ApplyManager {
         desiredPlan.getTopicPlans().forEach(topicPlan -> {
             if (topicPlan.getAction() == PlanAction.ADD) {
                 LogUtil.printTopicPreApply(topicPlan);
-                kafkaService.createTopic(topicPlan.getName(), topicPlan.getTopicDetailsPlan().get(), topicPlan.getTopicConfigPlans());
+                try {
+                    kafkaService.createTopic(topicPlan.getName(), topicPlan.getTopicDetailsPlan().get(), topicPlan.getTopicConfigPlans());
+                } catch (TopicAlreadyExistsException ex) {
+                    applyStaleAddTopic(topicPlan, clusterNodes);
+                }
                 LogUtil.printPostApply();
             } else if (topicPlan.getAction() == PlanAction.UPDATE) {
                 LogUtil.printTopicPreApply(topicPlan);
@@ -53,6 +60,39 @@ public class ApplyManager {
                 LogUtil.printPostApply();
             }
         });
+    }
+
+    private void applyStaleAddTopic(TopicPlan topicPlan, Collection<Node> clusterNodes) {
+        TopicDescription currentTopic = kafkaService.getTopicDescription(Collections.singleton(topicPlan.getName())).get(topicPlan.getName());
+
+        topicPlan.getTopicDetailsPlan().ifPresent(topicDetailsPlan -> {
+            topicDetailsPlan.getPartitions().ifPresent(desiredPartitions -> {
+                int currentPartitions = currentTopic.partitions().size();
+                if (desiredPartitions > currentPartitions) {
+                    kafkaService.addTopicPartition(topicPlan.getName(), desiredPartitions);
+                } else if (desiredPartitions < currentPartitions) {
+                    throw new ValidationException(String.format(
+                            "Error thrown when attempting to apply a stale Kafka topic add plan: topic %s already exists with %s partitions, which is greater than the desired %s. Re-run plan.",
+                            topicPlan.getName(),
+                            currentPartitions,
+                            desiredPartitions));
+                }
+            });
+
+            topicDetailsPlan.getReplication().ifPresent(desiredReplication -> {
+                int currentReplication = currentTopic.partitions().stream()
+                        .findFirst()
+                        .map(topicPartitionInfo -> topicPartitionInfo.replicas().size())
+                        .orElseThrow(() -> new ValidationException(String.format(
+                                "Error thrown when attempting to apply a stale Kafka topic add plan: topic %s has no partitions to inspect. Re-run plan.",
+                                topicPlan.getName())));
+                if (desiredReplication != currentReplication) {
+                    kafkaService.updateTopicReplication(clusterNodes, topicPlan.getName(), desiredReplication);
+                }
+            });
+        });
+
+        topicPlan.getTopicConfigPlans().forEach(topicConfigPlan -> applyTopicConfiguration(topicPlan, topicConfigPlan));
     }
 
     private void applyTopicConfiguration(TopicPlan topicPlan, TopicConfigPlan topicConfigPlan) {
