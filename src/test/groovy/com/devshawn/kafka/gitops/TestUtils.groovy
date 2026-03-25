@@ -18,6 +18,8 @@ import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
 class TestUtils {
+    private static final int CLEANUP_ATTEMPTS = 30
+    private static final long CLEANUP_RETRY_MS = 2000L
 
     static String getFileContent(String fileName) {
         File file = new File(fileName)
@@ -37,38 +39,72 @@ class TestUtils {
     }
 
     static void cleanUpCluster() {
-        def conditions = new PollingConditions(timeout: 90, initialDelay: 2, factor: 1.25)
-
         try {
-            conditions.eventually {
-                Map<TopicPartition, PartitionReassignment> reassignments = getPartitionReassignments()
-                assert reassignments.isEmpty()
-            }
-            deleteTopics()
-            
-            conditions.eventually {
-                Map<TopicPartition, PartitionReassignment> reassignments = getPartitionReassignments()
-                assert reassignments.isEmpty()
-                deleteTopics()
-                Set<String> remainingTopics = getTopics()
-                assert remainingTopics.size() == 0
-            }
-            
             List<AclBindingFilter> filters = getCleanupFilters()
-            filters.each { filter -> deleteAcls(filter) }
-            conditions.eventually {
-                filters.each { filter ->
-                    deleteAcls(filter)
-                    List<AclBinding> acls = getAcls(filter)
-                    assert acls.size() == 0
+            withAdminClient { adminClient ->
+                Set<String> deletedTopics = [] as Set<String>
+                KafkaFuture<Void> topicDeletionFuture = null
+                int stableTopicDeletionChecks = 0
+
+                waitForCleanup('partition reassignments to finish') {
+                    Map<TopicPartition, PartitionReassignment> reassignments = waitFor(adminClient.listPartitionReassignments().reassignments())
+                    return reassignments.isEmpty() ? null : "Pending reassignments: ${formatReassignments(reassignments)}"
+                }
+
+                waitForCleanup('topics to be deleted') {
+                    Set<String> topics = waitFor(adminClient.listTopics().names())
+                    if (!topics.isEmpty()) {
+                        stableTopicDeletionChecks = 0
+                        deletedTopics.addAll(topics)
+                        topicDeletionFuture = adminClient.deleteTopics(topics).all()
+                    }
+
+                    if (topicDeletionFuture != null) {
+                        try {
+                            waitFor(topicDeletionFuture)
+                        } catch (Exception ex) {
+                            return "Delete request still in progress for ${deletedTopics.toList().sort()}: ${ex.message}"
+                        }
+                    }
+
+                    Set<String> remainingTopics = waitFor(adminClient.listTopics().names())
+                    if (!remainingTopics.isEmpty()) {
+                        stableTopicDeletionChecks = 0
+                        return "Remaining topics: ${remainingTopics.toList().sort()}"
+                    }
+
+                    if (!deletedTopics.isEmpty() && stableTopicDeletionChecks < 1) {
+                        stableTopicDeletionChecks++
+                        return "Waiting for deleted topics to settle: ${deletedTopics.toList().sort()}"
+                    }
+
+                    return null
+                }
+
+                waitForCleanup('ACLs to be deleted') {
+                    Map<String, Integer> remainingAcls = [:]
+                    filters.each { filter ->
+                        List<AclBinding> acls = new ArrayList<>(waitFor(adminClient.describeAcls(filter).values()))
+                        if (!acls.isEmpty()) {
+                            try {
+                                waitFor(adminClient.deleteAcls(Collections.singletonList(filter)).all())
+                            } catch (Exception ignored) {
+                                // ACL deletion is idempotent; re-check the live state before failing.
+                            }
+
+                            List<AclBinding> remaining = new ArrayList<>(waitFor(adminClient.describeAcls(filter).values()))
+                            if (!remaining.isEmpty()) {
+                                remainingAcls[filter.patternFilter().resourceType().name()] = remaining.size()
+                            }
+                        }
+                    }
+                    return remainingAcls.isEmpty() ? null : "Remaining ACLs: ${remainingAcls}"
                 }
             }
             println "Finished cleaning up cluster"
         } catch (Exception ex) {
-            println "Error cleaning up kafka cluster"
-            println ex
+            throw new IllegalStateException('Error cleaning up kafka cluster', ex)
         }
-
     }
 
     static void seedCluster() {
@@ -152,6 +188,37 @@ class TestUtils {
         return withAdminClient { adminClient ->
             waitFor(adminClient.listPartitionReassignments().reassignments())
         }
+    }
+
+    private static void waitForCleanup(String description, Closure<String> stateProbe) {
+        String lastState = "Timed out waiting for ${description}"
+        Exception lastException = null
+
+        for (int attempt = 1; attempt <= CLEANUP_ATTEMPTS; attempt++) {
+            try {
+                String state = stateProbe.call()
+                if (state == null) {
+                    return
+                }
+                lastState = state
+                lastException = null
+            } catch (Exception ex) {
+                lastException = ex
+                lastState = ex.message ?: ex.class.simpleName
+            }
+
+            if (attempt < CLEANUP_ATTEMPTS) {
+                Thread.sleep(CLEANUP_RETRY_MS)
+            }
+        }
+
+        throw new IllegalStateException("Timed out waiting for ${description}. ${lastState}", lastException)
+    }
+
+    private static List<String> formatReassignments(Map<TopicPartition, PartitionReassignment> reassignments) {
+        return reassignments.keySet()
+                .collect { topicPartition -> "${topicPartition.topic()}-${topicPartition.partition()}" }
+                .sort()
     }
 
     static void deleteTopics() {
