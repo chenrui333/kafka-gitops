@@ -2,7 +2,7 @@
 
 ![kafka-gitops](https://i.imgur.com/jnDwYp8.png)
 
-Manage Apache Kafka topics, services, and ACLs through a desired state file.
+Manage Apache Kafka topics, services, ACLs, and Schema Registry subjects through a desired state file.
 
 ## Overview
 
@@ -15,7 +15,7 @@ The tool also generates the ACLs needed for common Kafka application types. By d
 ## Features
 
 - Built for CI/CD pipelines that validate and apply Kafka changes from code.
-- Declarative desired-state management for topics, services, users, and ACLs.
+- Declarative desired-state management for topics, services, users, ACLs, and Schema Registry subjects.
 - Plan and apply workflows with idempotent execution.
 - Bootstrap existing clusters into a valid starting state file with `import`.
 - Support for self-hosted Kafka, managed Kafka, and Confluent Cloud.
@@ -41,6 +41,8 @@ Start with:
 To bootstrap an existing cluster into a starting file, run `kafka-gitops import -o imported-state.yaml`. The generated file captures topics and raw ACLs as `users` plus `customUserAcls`; it does not infer higher-level service definitions.
 
 For environment-specific state, keep using separate generated state files per environment. `settings.files` can split services, topics, and users into separate source files, and shared plus environment-specific YAML can be layered outside `kafka-gitops` before running `plan` or `apply`.
+
+Schema Registry subjects can be managed under `schemas` when `settings.schemaRegistry.url` is configured. The current Schema Registry support plans and applies subject add/update operations against the latest version; schema deletion is not managed.
 
 ## Configuration
 

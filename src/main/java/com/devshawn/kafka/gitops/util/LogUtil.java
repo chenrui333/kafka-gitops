@@ -3,12 +3,14 @@ package com.devshawn.kafka.gitops.util;
 import com.devshawn.kafka.gitops.domain.plan.AclPlan;
 import com.devshawn.kafka.gitops.domain.plan.DesiredPlan;
 import com.devshawn.kafka.gitops.domain.plan.PlanOverview;
+import com.devshawn.kafka.gitops.domain.plan.SchemaPlan;
 import com.devshawn.kafka.gitops.domain.plan.TopicConfigPlan;
 import com.devshawn.kafka.gitops.domain.plan.TopicDetailsPlan;
 import com.devshawn.kafka.gitops.domain.plan.TopicPlan;
 import com.devshawn.kafka.gitops.domain.state.AclDetails;
 import com.devshawn.kafka.gitops.enums.PlanAction;
 import com.devshawn.kafka.gitops.exception.KafkaExecutionException;
+import com.devshawn.kafka.gitops.exception.SchemaRegistryExecutionException;
 import com.devshawn.kafka.gitops.exception.WritePlanOutputException;
 import picocli.CommandLine;
 
@@ -21,6 +23,11 @@ public class LogUtil {
 
         printTopicOverview(desiredPlan, deleteDisabled);
         desiredPlan.getTopicPlans().forEach(LogUtil::printTopicPlan);
+
+        if (!desiredPlan.getSchemaPlans().isEmpty()) {
+            printSchemaOverview(desiredPlan, deleteDisabled);
+            desiredPlan.getSchemaPlans().forEach(LogUtil::printSchemaPlan);
+        }
 
         printAclOverview(desiredPlan, deleteDisabled);
         desiredPlan.getAclPlans().forEach(LogUtil::printAclPlan);
@@ -145,6 +152,24 @@ public class LogUtil {
         }
     }
 
+    private static void printSchemaPlan(SchemaPlan schemaPlan) {
+        switch (schemaPlan.getAction()) {
+            case ADD:
+                System.out.println(green(String.format("+ [SCHEMA] %s", schemaPlan.getSubject())));
+                printSchemaDetails("\t+ ", schemaPlan);
+                System.out.println("\n");
+                break;
+            case UPDATE:
+                System.out.println(yellow(String.format("~ [SCHEMA] %s", schemaPlan.getSubject())));
+                printSchemaDetails("\t~ ", schemaPlan);
+                System.out.println("\n");
+                break;
+            case REMOVE:
+            case NO_CHANGE:
+                break;
+        }
+    }
+
     /*
      * Apply
      */
@@ -157,6 +182,11 @@ public class LogUtil {
     public static void printAclPreApply(AclPlan aclPlan) {
         System.out.println(String.format("Applying: [%s]\n", toAction(aclPlan.getAction())));
         printAclPlan(aclPlan);
+    }
+
+    public static void printSchemaPreApply(SchemaPlan schemaPlan) {
+        System.out.println(String.format("Applying: [%s]\n", toAction(schemaPlan.getAction())));
+        printSchemaPlan(schemaPlan);
     }
 
     public static void printPostApply() {
@@ -183,6 +213,12 @@ public class LogUtil {
         PlanOverview aclPlanOverview = PlanUtil.getAclPlanOverview(desiredPlan, deleteDisabled);
         System.out.println(String.format("ACLs: %s, %s, %s.\n", toCreate(aclPlanOverview.getAdd()),
                 toUpdate(aclPlanOverview.getUpdate()), toDelete(aclPlanOverview.getRemove())));
+    }
+
+    private static void printSchemaOverview(DesiredPlan desiredPlan, boolean deleteDisabled) {
+        PlanOverview schemaPlanOverview = PlanUtil.getSchemaPlanOverview(desiredPlan, deleteDisabled);
+        System.out.println(String.format("Schemas: %s, %s, %s.\n", toCreate(schemaPlanOverview.getAdd()),
+                toUpdate(schemaPlanOverview.getUpdate()), toDelete(schemaPlanOverview.getRemove())));
     }
 
     private static void printLegend(PlanOverview planOverview) {
@@ -213,6 +249,20 @@ public class LogUtil {
                 planOverview.getAdd(), planOverview.getUpdate(), planOverview.getRemove()));
     }
 
+    private static void printSchemaDetails(String prefix, SchemaPlan schemaPlan) {
+        System.out.println(String.format("%stype: %s", colorizePrefix(prefix), schemaPlan.getSchemaType()));
+        if (!schemaPlan.getReferences().isEmpty()) {
+            System.out.println(String.format("%sreferences: %s", colorizePrefix(prefix), schemaPlan.getReferences().size()));
+        }
+    }
+
+    private static String colorizePrefix(String prefix) {
+        if (prefix.contains("+")) {
+            return green(prefix);
+        }
+        return yellow(prefix);
+    }
+
     public static void printSimpleSuccess(String message) {
         System.out.println(String.format("[%s] %s\n", green("SUCCESS"), message));
     }
@@ -240,6 +290,15 @@ public class LogUtil {
 
     public static void printKafkaExecutionError(KafkaExecutionException ex, boolean apply) {
         System.out.println(String.format("[%s] %s:\n%s\n", red("ERROR"), ex.getMessage(), ex.getExceptionMessage()));
+        if (apply) {
+            printApplyErrorMessage();
+        } else {
+            printPlanErrorMessage();
+        }
+    }
+
+    public static void printSchemaRegistryExecutionError(SchemaRegistryExecutionException ex, boolean apply) {
+        System.out.println(String.format("[%s] %s:\n%s\n", red("ERROR"), ex.getMessage(), ex.getResponseBody()));
         if (apply) {
             printApplyErrorMessage();
         } else {

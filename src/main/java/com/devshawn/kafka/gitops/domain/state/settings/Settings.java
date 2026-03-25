@@ -17,6 +17,8 @@ public interface Settings {
 
     Optional<SettingsFiles> getFiles();
 
+    Optional<SettingsSchemaRegistry> getSchemaRegistry();
+
     class Builder extends Settings_Builder {
     }
 }

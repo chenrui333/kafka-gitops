@@ -8,16 +8,22 @@ import com.devshawn.kafka.gitops.config.ManagerConfig;
 import com.devshawn.kafka.gitops.domain.confluent.ServiceAccount;
 import com.devshawn.kafka.gitops.domain.options.GetAclOptions;
 import com.devshawn.kafka.gitops.domain.state.CustomAclDetails;
+import com.devshawn.kafka.gitops.domain.plan.SchemaPlan;
 import com.devshawn.kafka.gitops.domain.plan.DesiredPlan;
 import com.devshawn.kafka.gitops.domain.state.AclDetails;
 import com.devshawn.kafka.gitops.domain.state.DesiredState;
 import com.devshawn.kafka.gitops.domain.state.DesiredStateFile;
+import com.devshawn.kafka.gitops.domain.state.SchemaDetails;
+import com.devshawn.kafka.gitops.domain.state.SchemaReference;
 import com.devshawn.kafka.gitops.domain.state.TopicDetails;
 import com.devshawn.kafka.gitops.domain.state.UserDetails;
 import com.devshawn.kafka.gitops.domain.state.service.KafkaStreamsService;
+import com.devshawn.kafka.gitops.domain.state.settings.Settings;
+import com.devshawn.kafka.gitops.domain.state.settings.SettingsSchemaRegistry;
 import com.devshawn.kafka.gitops.exception.ConfluentCloudException;
 import com.devshawn.kafka.gitops.exception.InvalidAclDefinitionException;
 import com.devshawn.kafka.gitops.exception.MissingConfigurationException;
+import com.devshawn.kafka.gitops.exception.SchemaRegistryExecutionException;
 import com.devshawn.kafka.gitops.exception.ServiceAccountNotFoundException;
 import com.devshawn.kafka.gitops.exception.ValidationException;
 import com.devshawn.kafka.gitops.manager.ApplyManager;
@@ -26,6 +32,7 @@ import com.devshawn.kafka.gitops.service.ConfluentCloudService;
 import com.devshawn.kafka.gitops.service.KafkaService;
 import com.devshawn.kafka.gitops.service.ParserService;
 import com.devshawn.kafka.gitops.service.RoleService;
+import com.devshawn.kafka.gitops.service.SchemaRegistryService;
 import com.devshawn.kafka.gitops.util.LogUtil;
 import com.devshawn.kafka.gitops.util.StateUtil;
 import com.fasterxml.jackson.core.JsonParser;
@@ -49,6 +56,8 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.nio.file.Files;
+import java.io.IOException;
 
 public class StateManager {
 
@@ -82,21 +91,24 @@ public class StateManager {
     public DesiredStateFile getAndValidateStateFile() {
         DesiredStateFile desiredStateFile = parserService.parseStateFile();
         validateTopics(desiredStateFile);
+        validateSchemas(desiredStateFile);
         validateCustomAcls(desiredStateFile);
         this.describeAclEnabled = StateUtil.isDescribeTopicAclEnabled(desiredStateFile);
         return desiredStateFile;
     }
 
     public DesiredPlan plan() {
-        DesiredPlan desiredPlan = generatePlan();
+        DesiredStateFile desiredStateFile = getAndValidateStateFile();
+        DesiredPlan desiredPlan = generatePlan(desiredStateFile);
         planManager.writePlanToFile(desiredPlan);
         planManager.validatePlanHasChanges(desiredPlan, managerConfig.isDeleteDisabled(), managerConfig.isSkipAclsDisabled());
         return desiredPlan;
     }
 
-    private DesiredPlan generatePlan() {
-        DesiredState desiredState = getDesiredState();
+    private DesiredPlan generatePlan(DesiredStateFile desiredStateFile) {
+        DesiredState desiredState = getDesiredState(desiredStateFile);
         DesiredPlan.Builder desiredPlan = new DesiredPlan.Builder();
+        planSchemas(desiredStateFile, desiredPlan);
         if (!managerConfig.isSkipAclsDisabled()) {
             planManager.planAcls(desiredState, desiredPlan);
         }
@@ -106,13 +118,20 @@ public class StateManager {
 
     public DesiredPlan apply() {
         DesiredPlan desiredPlan = planManager.readPlanFromFile();
+        DesiredStateFile desiredStateFile = null;
         if (desiredPlan == null) {
-            desiredPlan = generatePlan();
+            desiredStateFile = getAndValidateStateFile();
+            desiredPlan = generatePlan(desiredStateFile);
+        } else if (!desiredPlan.getSchemaPlans().isEmpty()) {
+            desiredStateFile = getAndValidateStateFile();
         }
 
         planManager.validatePlanHasChanges(desiredPlan, managerConfig.isDeleteDisabled(), managerConfig.isSkipAclsDisabled());
 
         applyManager.applyTopics(desiredPlan);
+        if (desiredStateFile != null) {
+            applySchemas(desiredStateFile, desiredPlan);
+        }
         if (!managerConfig.isSkipAclsDisabled()) {
             applyManager.applyAcls(desiredPlan);
         }
@@ -157,8 +176,7 @@ public class StateManager {
         }
     }
 
-    private DesiredState getDesiredState() {
-        DesiredStateFile desiredStateFile = getAndValidateStateFile();
+    private DesiredState getDesiredState(DesiredStateFile desiredStateFile) {
         DesiredState.Builder desiredState = new DesiredState.Builder()
                 .addAllPrefixedTopicsToIgnore(getPrefixedTopicsToIgnore(desiredStateFile))
                 .addAllPrefixedTopicsToManage(getPrefixedTopicsToManage(desiredStateFile));
@@ -174,6 +192,53 @@ public class StateManager {
         }
 
         return desiredState.build();
+    }
+
+    private void planSchemas(DesiredStateFile desiredStateFile, DesiredPlan.Builder desiredPlan) {
+        if (!hasSchemas(desiredStateFile)) {
+            return;
+        }
+
+        SchemaRegistryService schemaRegistryService = createSchemaRegistryService(desiredStateFile);
+        resolveSchemas(desiredStateFile).forEach((subject, desiredSchema) -> {
+            Optional<SchemaRegistryService.RegisteredSchema> currentSchema = schemaRegistryService.getLatestSchema(subject);
+
+            SchemaPlan.Builder schemaPlan = new SchemaPlan.Builder()
+                    .setSubject(subject)
+                    .setSchemaType(desiredSchema.schemaType())
+                    .setSchema(desiredSchema.schema())
+                    .addAllReferences(desiredSchema.references());
+
+            if (currentSchema.isEmpty()) {
+                schemaPlan.setAction(com.devshawn.kafka.gitops.enums.PlanAction.ADD);
+            } else if (schemasMatch(desiredSchema, currentSchema.get())) {
+                schemaPlan.setAction(com.devshawn.kafka.gitops.enums.PlanAction.NO_CHANGE);
+            } else {
+                schemaPlan.setAction(com.devshawn.kafka.gitops.enums.PlanAction.UPDATE);
+            }
+
+            desiredPlan.addSchemaPlans(schemaPlan.build());
+        });
+    }
+
+    private void applySchemas(DesiredStateFile desiredStateFile, DesiredPlan desiredPlan) {
+        if (!hasSchemas(desiredStateFile) || desiredPlan.getSchemaPlans().isEmpty()) {
+            return;
+        }
+
+        SchemaRegistryService schemaRegistryService = createSchemaRegistryService(desiredStateFile);
+        desiredPlan.getSchemaPlans().stream()
+                .filter(schemaPlan -> schemaPlan.getAction() == com.devshawn.kafka.gitops.enums.PlanAction.ADD
+                        || schemaPlan.getAction() == com.devshawn.kafka.gitops.enums.PlanAction.UPDATE)
+                .forEach(schemaPlan -> {
+                    LogUtil.printSchemaPreApply(schemaPlan);
+                    schemaRegistryService.registerSchema(
+                            schemaPlan.getSubject(),
+                            schemaPlan.getSchemaType(),
+                            schemaPlan.getSchema(),
+                            schemaPlan.getReferences());
+                    LogUtil.printPostApply();
+                });
     }
 
     private void exportTopics(DesiredStateFile.Builder desiredStateFile) {
@@ -470,6 +535,52 @@ public class StateManager {
         });
     }
 
+    private void validateSchemas(DesiredStateFile desiredStateFile) {
+        if (!hasSchemas(desiredStateFile)) {
+            return;
+        }
+
+        SettingsSchemaRegistry settingsSchemaRegistry = getSchemaRegistrySettings(desiredStateFile);
+        boolean hasUsername = settingsSchemaRegistry.getUsername().isPresent();
+        boolean hasPassword = settingsSchemaRegistry.getPassword().isPresent();
+        if (hasUsername != hasPassword) {
+            throw new ValidationException("Schema Registry username and password must be provided together.");
+        }
+
+        Map<String, String> declaredSubjects = new LinkedHashMap<>();
+        desiredStateFile.getSchemas().forEach((schemaName, schemaDetails) -> {
+            try {
+                schemaDetails.validate();
+            } catch (ValidationException ex) {
+                throw new ValidationException(String.format("Schema '%s' %s", schemaName, ex.getMessage()));
+            }
+
+            if (schemaDetails.getRelativeLocation().isPresent()) {
+                java.io.File schemaFile = parserService.resolveRelativeFile(schemaDetails.getRelativeLocation().get());
+                if (!schemaFile.exists() || !schemaFile.isFile() || !schemaFile.canRead()) {
+                    throw new ValidationException(String.format(
+                            "Schema '%s' references unreadable relativeLocation '%s'.",
+                            schemaName,
+                            schemaDetails.getRelativeLocation().get()));
+                }
+            }
+
+            List<String> subjects = schemaDetails.getSubjects().isEmpty()
+                    ? List.of(defaultSchemaSubject(schemaName))
+                    : schemaDetails.getSubjects();
+            subjects.forEach(subject -> {
+                String previous = declaredSubjects.putIfAbsent(subject, schemaName);
+                if (previous != null) {
+                    throw new ValidationException(String.format(
+                            "Schema subject '%s' is declared more than once: %s and %s.",
+                            subject,
+                            previous,
+                            schemaName));
+                }
+            });
+        });
+    }
+
     private void validateTopicFilters(DesiredStateFile desiredStateFile) {
         List<String> blacklistPrefixes = new ArrayList<>();
         List<String> whitelistPrefixes = new ArrayList<>();
@@ -505,6 +616,76 @@ public class StateManager {
             return desiredStateFile.getSettings().get().getCcloud().get().isEnabled();
         }
         return false;
+    }
+
+    private boolean hasSchemas(DesiredStateFile desiredStateFile) {
+        return !desiredStateFile.getSchemas().isEmpty();
+    }
+
+    private SettingsSchemaRegistry getSchemaRegistrySettings(DesiredStateFile desiredStateFile) {
+        return desiredStateFile.getSettings()
+                .flatMap(Settings::getSchemaRegistry)
+                .orElseThrow(() -> new ValidationException("Schema Registry settings are required when schemas are defined."));
+    }
+
+    private SchemaRegistryService createSchemaRegistryService(DesiredStateFile desiredStateFile) {
+        return new SchemaRegistryService(objectMapper, getSchemaRegistrySettings(desiredStateFile));
+    }
+
+    private Map<String, ResolvedSchemaDefinition> resolveSchemas(DesiredStateFile desiredStateFile) {
+        Map<String, ResolvedSchemaDefinition> resolvedSchemas = new LinkedHashMap<>();
+        desiredStateFile.getSchemas().forEach((schemaName, schemaDetails) -> {
+            String schemaText = readSchemaText(schemaName, schemaDetails);
+            List<String> subjects = schemaDetails.getSubjects().isEmpty()
+                    ? List.of(defaultSchemaSubject(schemaName))
+                    : schemaDetails.getSubjects();
+
+            subjects.forEach(subject -> resolvedSchemas.put(subject, new ResolvedSchemaDefinition(
+                    subject,
+                    normalizeSchemaType(schemaDetails.getResolvedType()),
+                    normalizeSchemaText(schemaText),
+                    new ArrayList<>(schemaDetails.getReferences()))));
+        });
+        return resolvedSchemas;
+    }
+
+    private String readSchemaText(String schemaName, SchemaDetails schemaDetails) {
+        if (schemaDetails.getSchema().isPresent()) {
+            return schemaDetails.getSchema().get();
+        }
+
+        java.io.File schemaFile = parserService.resolveRelativeFile(schemaDetails.getRelativeLocation().orElseThrow());
+        try {
+            return Files.readString(schemaFile.toPath());
+        } catch (IOException ex) {
+            throw new ValidationException(String.format("Could not read schema '%s' from '%s': %s",
+                    schemaName,
+                    schemaDetails.getRelativeLocation().get(),
+                    ex.getMessage()));
+        }
+    }
+
+    private boolean schemasMatch(ResolvedSchemaDefinition desiredSchema, SchemaRegistryService.RegisteredSchema currentSchema) {
+        return desiredSchema.schemaType().equals(normalizeSchemaType(currentSchema.schemaType()))
+                && desiredSchema.schema().equals(normalizeSchemaText(currentSchema.schema()))
+                && desiredSchema.references().equals(currentSchema.references());
+    }
+
+    private String normalizeSchemaText(String schemaText) {
+        return schemaText.replace("\r\n", "\n").trim();
+    }
+
+    private String normalizeSchemaType(String schemaType) {
+        return schemaType == null || schemaType.isBlank()
+                ? "AVRO"
+                : schemaType.toUpperCase(Locale.ROOT);
+    }
+
+    private String defaultSchemaSubject(String schemaName) {
+        return String.format("%s-value", schemaName);
+    }
+
+    private record ResolvedSchemaDefinition(String subject, String schemaType, String schema, List<SchemaReference> references) {
     }
 
     private ObjectMapper initializeObjectMapper() {

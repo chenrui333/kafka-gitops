@@ -2,7 +2,7 @@
 
 [![Java CI](https://github.com/chenrui333/kafka-gitops/actions/workflows/gradle.yml/badge.svg)](https://github.com/chenrui333/kafka-gitops/actions/workflows/gradle.yml) [![Release](https://github.com/chenrui333/kafka-gitops/actions/workflows/release.yml/badge.svg)](https://github.com/chenrui333/kafka-gitops/actions/workflows/release.yml) [![Maintainability](https://api.codeclimate.com/v1/badges/373371aac3f69c292031/maintainability)](https://codeclimate.com/github/chenrui333/kafka-gitops/maintainability) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-Manage Apache Kafka topics and ACLs through a desired state file.
+Manage Apache Kafka topics, ACLs, and Schema Registry subjects through a desired state file.
 
 <p align="center">
     <img src="https://i.imgur.com/jnDwYp8.png"/>
@@ -10,11 +10,13 @@ Manage Apache Kafka topics and ACLs through a desired state file.
 
 ## Overview
 
-Kafka GitOps is an Apache Kafka resources-as-code tool which allows you to automate the management of your Apache Kafka topics and ACLs from version controlled code. It allows you to define topics and services through the use of a desired state file, much like Terraform and other infrastructure-as-code tools.
+Kafka GitOps is an Apache Kafka resources-as-code tool which allows you to automate the management of your Apache Kafka topics, ACLs, and Schema Registry subjects from version controlled code. It allows you to define topics, services, and schemas through the use of a desired state file, much like Terraform and other infrastructure-as-code tools.
 
 Topics and services get defined in a YAML file. When run, `kafka-gitops` compares your desired state to the actual state of the cluster and generates a plan to execute against the cluster. This will make your topics and ACLs match your desired state.
 
 This tool also generates the needed ACLs for each type of application. There is no need to manually create a bunch of ACLs for Kafka Connect, Kafka Streams, etc. By defining your services, `kafka-gitops` will build the necessary ACLs.
+
+Schema Registry subjects can also be declared in the same desired state. `kafka-gitops` plans and applies latest-version schema registrations for the configured subjects, including references.
 
 This tool supports self-hosted Kafka, managed Kafka, and Confluent Cloud clusters.
 
@@ -24,6 +26,7 @@ This tool supports self-hosted Kafka, managed Kafka, and Confluent Cloud cluster
 - 🔥  **Configuration as code**: Describe your desired state and manage it from a version-controlled declarative file.
 - 👍  **Easy to use**: Deep knowledge of Kafka administration or ACL management is **NOT** required. 
 - ⚡️️  **Plan & Apply**: Generate and view a plan with or without executing it against your cluster.
+- 🧬  **Schema Registry support**: Register and update Schema Registry subjects from the same desired state file as topics and ACLs.
 - 💻  **Portable**: Works across self-hosted clusters, managed clusters, and even Confluent Cloud clusters.
 - 🦄  **Idempotency**: Executing the same desired state file on an up-to-date cluster will yield the same result.
 - ☀️  **Continue from failures**: If a specific step fails during an apply, you can fix your desired state and re-run the command. You can execute `kafka-gitops` again without needing to rollback any partial successes.
@@ -157,16 +160,24 @@ Then run the test suite:
 
 By default, `kafka-gitops` looks for `state.yaml` in the current directory. You can also use `kafka-gitops -f` to pass a file.
 
-Topic defaults can provide both `partitions` and `replication`, and topic management can be scoped with either a prefixed `blacklist` or a prefixed `whitelist` under `settings.topics`. `whitelist` and `blacklist` are mutually exclusive.
+Topic defaults can provide both `partitions` and `replication`, topic management can be scoped with either a prefixed `blacklist` or a prefixed `whitelist` under `settings.topics`, and Schema Registry subjects can be managed under `schemas` when `settings.schemaRegistry.url` is set. Schema management is add/update only; subject deletion is not managed.
 
 An example desired state file:
 
 ```yaml
 settings:
+  schemaRegistry:
+    url: http://localhost:8081
   topics:
     defaults:
       partitions: 6
       replication: 3
+
+schemas:
+  example-event:
+    relativeLocation: schemas/example-event.avsc
+    subjects:
+      - example-topic-value
 
 topics:
   example-topic:
@@ -181,6 +192,8 @@ services:
     consumes:
       - example-topic
 ```
+
+If a schema does not declare any `subjects`, `kafka-gitops` defaults it to `<schema-name>-value`.
 
 ## Contributing
 

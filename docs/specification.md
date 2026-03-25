@@ -9,6 +9,7 @@ This document describes how to write a Kafka cluster desired state file. The fil
 The desired state file consists of:
 
 - **Settings** [Optional]: Specific settings for configuring `kafka-gitops`.
+- **Schemas** [Optional]: Schema Registry subject definitions.
 - **Topics** [Optional]: Topic and topic configuration definitions.
 - **Services** [Optional]: Service definitions for generating ACLs.
 - **Users** [Optional]: User definitions for generating ACLs.
@@ -26,12 +27,18 @@ The desired state file consists of:
   - **defaults** [Optional]: Specify topic defaults so you do not need to repeat them for every topic. `partitions` and `replication` are supported.
   - **blacklist** [Optional]: Add a prefixed topic blacklist for ignoring specific topics when using `kafka-gitops`. This allows topics to be ignored from deletion if they are not defined in the desired state file.
   - **whitelist** [Optional]: Add a prefixed topic whitelist to limit management to specific topic prefixes. This is mutually exclusive with `blacklist`, and all topics defined in the state file must match one of the whitelisted prefixes.
+- **schemaRegistry** [Optional]:
+  - **url** [Required when `schemas` are defined]: Base URL for the Schema Registry API.
+  - **username** [Optional]: Basic-auth username for Schema Registry.
+  - **password** [Optional]: Basic-auth password for Schema Registry. If either `username` or `password` is set, both must be provided.
 
 **Example**:
 ```yaml
 settings:
   ccloud:
     enabled: true
+  schemaRegistry:
+    url: http://localhost:8081
   topics:
     defaults:
       partitions: 6
@@ -55,6 +62,42 @@ For example, you can compose shared and environment-specific YAML before invokin
 ```bash
 yq eval-all '. as $item ireduce ({}; . * $item )' state.base.yaml state.dev.yaml > state.generated.dev.yaml
 kafka-gitops -f state.generated.dev.yaml plan
+```
+
+## Schemas
+
+**Synopsis**: Define Schema Registry schemas and the subjects they should be registered under.
+
+Schema management is currently add/update only. `kafka-gitops` compares the desired schema to the latest version of each subject and registers a new version when the schema text, type, or references differ. It does not delete subjects or older versions.
+
+Each schema definition must include exactly one of:
+
+- `relativeLocation`: a schema file path relative to the main state file
+- `schema`: inline schema text
+
+`type` defaults to `AVRO`. Supported values are `AVRO`, `JSON`, and `PROTOBUF`.
+
+If `subjects` is omitted, `kafka-gitops` defaults it to `<schema-name>-value`.
+
+**Example**:
+
+```yaml
+settings:
+  schemaRegistry:
+    url: http://localhost:8081
+    username: schema-user
+    password: schema-pass
+
+schemas:
+  personnel:
+    relativeLocation: schemas/personnel.avsc
+    subjects:
+      - personnel-raw-value
+      - personnel-refined-value
+    references:
+      - name: common.avsc
+        subject: common-value
+        version: 3
 ```
 
 ## Topics

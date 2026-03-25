@@ -12,6 +12,7 @@ public class PlanUtil {
     public static PlanOverview getOverview(DesiredPlan desiredPlan, boolean deleteDisabled, boolean skipAclsDisabled) {
         EnumMap<PlanAction, Long> map = getPlanActionMap();
         desiredPlan.getTopicPlans().forEach(it -> addToMap(map, it.getAction(), deleteDisabled));
+        desiredPlan.getSchemaPlans().forEach(it -> addToMap(map, it.getAction(), deleteDisabled));
         if(!skipAclsDisabled) {
             desiredPlan.getAclPlans().forEach(it -> addToMap(map, it.getAction(), deleteDisabled));
         }
@@ -27,6 +28,12 @@ public class PlanUtil {
     public static PlanOverview getAclPlanOverview(DesiredPlan desiredPlan, boolean deleteDisabled) {
         EnumMap<PlanAction, Long> map = getPlanActionMap();
         desiredPlan.getAclPlans().forEach(it -> addToMap(map, it.getAction(), deleteDisabled));
+        return buildPlanOverview(map);
+    }
+
+    public static PlanOverview getSchemaPlanOverview(DesiredPlan desiredPlan, boolean deleteDisabled) {
+        EnumMap<PlanAction, Long> map = getPlanActionMap();
+        desiredPlan.getSchemaPlans().forEach(it -> addToMap(map, it.getAction(), deleteDisabled));
         return buildPlanOverview(map);
     }
 

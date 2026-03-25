@@ -3,6 +3,7 @@ package com.devshawn.kafka.gitops
 import com.devshawn.kafka.gitops.config.ManagerConfig
 import com.devshawn.kafka.gitops.domain.confluent.ServiceAccount
 import com.devshawn.kafka.gitops.domain.state.DesiredState
+import com.devshawn.kafka.gitops.domain.state.DesiredStateFile
 import com.devshawn.kafka.gitops.service.ConfluentCloudService
 import com.devshawn.kafka.gitops.service.ParserService
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -77,9 +78,10 @@ customServiceAcls:
     }
 
     private static DesiredState invokeGetDesiredState(StateManager stateManager) {
-        def method = StateManager.getDeclaredMethod('getDesiredState')
+        DesiredStateFile desiredStateFile = stateManager.getAndValidateStateFile()
+        def method = StateManager.getDeclaredMethod('getDesiredState', DesiredStateFile)
         method.accessible = true
-        return (DesiredState) method.invoke(stateManager)
+        return (DesiredState) method.invoke(stateManager, desiredStateFile)
     }
 
     private static void setField(StateManager stateManager, String fieldName, Object value) {

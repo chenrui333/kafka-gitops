@@ -7,6 +7,7 @@ import com.devshawn.kafka.gitops.domain.plan.DesiredPlan;
 import com.devshawn.kafka.gitops.exception.KafkaExecutionException;
 import com.devshawn.kafka.gitops.exception.MissingConfigurationException;
 import com.devshawn.kafka.gitops.exception.PlanIsUpToDateException;
+import com.devshawn.kafka.gitops.exception.SchemaRegistryExecutionException;
 import com.devshawn.kafka.gitops.exception.ValidationException;
 import com.devshawn.kafka.gitops.exception.WritePlanOutputException;
 import com.devshawn.kafka.gitops.service.ParserService;
@@ -47,6 +48,8 @@ public class PlanCommand implements Callable<Integer> {
             LogUtil.printValidationResult(ex.getMessage(), false);
         } catch (KafkaExecutionException ex) {
             LogUtil.printKafkaExecutionError(ex);
+        } catch (SchemaRegistryExecutionException ex) {
+            LogUtil.printSchemaRegistryExecutionError(ex, false);
         } catch (WritePlanOutputException ex) {
             LogUtil.printPlanOutputError(ex);
         }

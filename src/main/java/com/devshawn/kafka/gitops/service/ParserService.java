@@ -92,14 +92,14 @@ public class ParserService {
     }
 
     private DesiredStateFile loadExternalFile(String fileName, String type) {
-        File externalFile = getAdditionalFile(fileName);
+        File externalFile = resolveRelativeFile(fileName);
         if (!externalFile.exists()) {
             throw new ValidationException(String.format("%s file '%s' could not be found.", type, fileName));
         }
         return parseStateFile(externalFile);
     }
 
-    private File getAdditionalFile(String fileName) {
+    public File resolveRelativeFile(String fileName) {
         return new File(Paths.get(file.getAbsoluteFile().getParent(), fileName).toString());
     }
 

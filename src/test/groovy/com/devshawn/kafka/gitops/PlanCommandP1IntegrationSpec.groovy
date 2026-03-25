@@ -12,6 +12,7 @@ import org.skyscreamer.jsonassert.JSONAssert
 import picocli.CommandLine
 import spock.lang.Specification
 import spock.lang.Unroll
+import spock.util.concurrent.PollingConditions
 
 @Unroll
 class PlanCommandP1IntegrationSpec extends Specification {
@@ -145,6 +146,11 @@ customUserAcls:
             ].each { aclBinding ->
                 TestUtils.waitFor(adminClient.createAcls([aclBinding]).all())
             }
+        }
+
+        def conditions = new PollingConditions(timeout: 15, initialDelay: 1, factor: 1.25)
+        conditions.eventually {
+            assert TestUtils.getAcls(TestUtils.getWildcardFilter()).size() == 4
         }
     }
 
