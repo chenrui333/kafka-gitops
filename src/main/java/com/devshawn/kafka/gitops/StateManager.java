@@ -143,7 +143,8 @@ public class StateManager {
     private DesiredState getDesiredState() {
         DesiredStateFile desiredStateFile = getAndValidateStateFile();
         DesiredState.Builder desiredState = new DesiredState.Builder()
-                .addAllPrefixedTopicsToIgnore(getPrefixedTopicsToIgnore(desiredStateFile));
+                .addAllPrefixedTopicsToIgnore(getPrefixedTopicsToIgnore(desiredStateFile))
+                .addAllPrefixedTopicsToManage(getPrefixedTopicsToManage(desiredStateFile));
 
         generateTopicsState(desiredState, desiredStateFile);
 
@@ -159,15 +160,19 @@ public class StateManager {
     }
 
     private void generateTopicsState(DesiredState.Builder desiredState, DesiredStateFile desiredStateFile) {
+        Optional<Integer> defaultPartitions = StateUtil.fetchPartitions(desiredStateFile);
         Optional<Integer> defaultReplication = StateUtil.fetchReplication(desiredStateFile);
-        if (defaultReplication.isPresent()) {
-            desiredStateFile.getTopics().forEach((name, details) -> {
-                Integer replication = details.getReplication().isPresent() ? details.getReplication().get() : defaultReplication.get();
-                desiredState.putTopics(name, new TopicDetails.Builder().mergeFrom(details).setReplication(replication).build());
-            });
-        } else {
-            desiredState.putAllTopics(desiredStateFile.getTopics());
-        }
+
+        desiredStateFile.getTopics().forEach((name, details) -> {
+            Integer partitions = details.getPartitions().orElseGet(defaultPartitions::get);
+            Integer replication = details.getReplication().orElseGet(defaultReplication::get);
+
+            desiredState.putTopics(name, new TopicDetails.Builder()
+                    .mergeFrom(details)
+                    .setPartitions(partitions)
+                    .setReplication(replication)
+                    .build());
+        });
     }
 
     private void generateConfluentCloudServiceAcls(DesiredState.Builder desiredState, DesiredStateFile desiredStateFile) {
@@ -290,6 +295,16 @@ public class StateManager {
         return topics;
     }
 
+    private List<String> getPrefixedTopicsToManage(DesiredStateFile desiredStateFile) {
+        List<String> topics = new ArrayList<>();
+        try {
+            topics.addAll(desiredStateFile.getSettings().get().getTopics().get().getWhitelist().get().getPrefixed());
+        } catch (NoSuchElementException ex) {
+            // Do nothing, no whitelist exists
+        }
+        return topics;
+    }
+
     private GetAclOptions buildGetAclOptions(String serviceName) {
         return new GetAclOptions.Builder().setServiceName(serviceName).setDescribeAclEnabled(describeAclEnabled).build();
     }
@@ -321,13 +336,23 @@ public class StateManager {
     }
 
     private void validateTopics(DesiredStateFile desiredStateFile) {
+        Optional<Integer> defaultPartitions = StateUtil.fetchPartitions(desiredStateFile);
         Optional<Integer> defaultReplication = StateUtil.fetchReplication(desiredStateFile);
+        validateTopicFilters(desiredStateFile);
+
+        if (defaultPartitions.isPresent() && defaultPartitions.get() < 1) {
+            throw new ValidationException("The default partition count must be a positive integer.");
+        }
         if (defaultReplication.isPresent() && defaultReplication.get() < 1) {
             throw new ValidationException("The default replication factor must be a positive integer.");
         }
 
         desiredStateFile.getTopics().forEach((name, details) -> {
-            if (details.getPartitions() < 1) {
+            if (!details.getPartitions().isPresent() && !defaultPartitions.isPresent()) {
+                throw new ValidationException(String.format("Not set: [partitions] in state file definition: topics -> %s", name));
+            }
+
+            if (details.getPartitions().isPresent() && details.getPartitions().get() < 1) {
                 throw new ValidationException(String.format("The topic '%s' must define partitions >= 1.", name));
             }
 
@@ -339,6 +364,36 @@ public class StateManager {
                 throw new ValidationException(String.format("The topic '%s' must define replication >= 1.", name));
             }
         });
+    }
+
+    private void validateTopicFilters(DesiredStateFile desiredStateFile) {
+        List<String> blacklistPrefixes = new ArrayList<>();
+        List<String> whitelistPrefixes = new ArrayList<>();
+
+        try {
+            blacklistPrefixes.addAll(desiredStateFile.getSettings().get().getTopics().get().getBlacklist().get().getPrefixed());
+        } catch (NoSuchElementException ex) {
+            // Do nothing, no blacklist exists
+        }
+
+        try {
+            whitelistPrefixes.addAll(desiredStateFile.getSettings().get().getTopics().get().getWhitelist().get().getPrefixed());
+        } catch (NoSuchElementException ex) {
+            // Do nothing, no whitelist exists
+        }
+
+        if (!blacklistPrefixes.isEmpty() && !whitelistPrefixes.isEmpty()) {
+            throw new ValidationException("Topic whitelist and blacklist are mutually exclusive.");
+        }
+
+        if (!whitelistPrefixes.isEmpty()) {
+            desiredStateFile.getTopics().forEach((name, details) -> {
+                boolean managed = whitelistPrefixes.stream().anyMatch(name::startsWith);
+                if (!managed) {
+                    throw new ValidationException(String.format("The topic '%s' does not match any whitelisted prefix.", name));
+                }
+            });
+        }
     }
 
     private boolean isConfluentCloudEnabled(DesiredStateFile desiredStateFile) {

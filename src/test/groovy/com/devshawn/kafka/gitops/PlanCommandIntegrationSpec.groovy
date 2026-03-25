@@ -55,6 +55,7 @@ class PlanCommandIntegrationSpec extends Specification {
                 "custom-application-id-streams",
                 "custom-storage-topic",
                 "custom-storage-topics",
+                "default-partitions",
                 "default-replication",
                 "default-replication-multiple",
                 "describe-topic-acl-disabled",
@@ -129,6 +130,7 @@ class PlanCommandIntegrationSpec extends Specification {
         "seed-topic-modification-no-delete" | true
         "seed-acl-exists"                   | true
         "seed-blacklist-topics"             | false
+        "seed-whitelist-topics"             | false
         "seed-topic-add-replicas"           | false
         "seed-topic-remove-replicas"        | false
         "seed-topic-add-partitions"         | false
@@ -202,6 +204,8 @@ class PlanCommandIntegrationSpec extends Specification {
                 "invalid-format",
                 "invalid-missing-user-principal",
                 "invalid-storage-topics",
+                "invalid-topic-filters",
+                "invalid-topic-whitelist",
                 "invalid-default-replication-1",
                 "invalid-default-replication-2",
                 "invalid-topic-remove-partitions"

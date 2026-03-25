@@ -1,0 +1,10 @@
+settings:
+  topics:
+    whitelist:
+      prefixed:
+        - managed.
+
+topics:
+  unmanaged.topic:
+    partitions: 1
+    replication: 1

@@ -144,13 +144,19 @@ Then run the test suite:
 
 By default, `kafka-gitops` looks for `state.yaml` in the current directory. You can also use `kafka-gitops -f` to pass a file.
 
+Topic defaults can provide both `partitions` and `replication`, and topic management can be scoped with either a prefixed `blacklist` or a prefixed `whitelist` under `settings.topics`. `whitelist` and `blacklist` are mutually exclusive.
+
 An example desired state file:
 
 ```yaml
+settings:
+  topics:
+    defaults:
+      partitions: 6
+      replication: 3
+
 topics:
   example-topic:
-    partitions: 6
-    replication: 3
     configs:
       cleanup.policy: compact
 

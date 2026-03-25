@@ -2,19 +2,6 @@
     "topicPlans": [
         {
             "name": "test-topic",
-            "action": "UPDATE",
-            "topicDetailsPlan": null,
-            "topicConfigPlans": [
-                {
-                    "key": "retention.ms",
-                    "value": "60000",
-                    "previousValue": "604800000",
-                    "action": "UPDATE"
-                }
-            ]
-        },
-        {
-            "name": "new-topic",
             "action": "ADD",
             "topicDetailsPlan": {
                 "partitions": 6,

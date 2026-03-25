@@ -4,7 +4,7 @@ Applying: [UPDATE]
 
 ~ [TOPIC] test-topic
 	~ configs:
-		+ retention.ms: 60000
+		~ retention.ms: 60000 ( 604800000 )
 
 
 Successfully applied.
@@ -13,9 +13,9 @@ Applying: [UPDATE]
 
 ~ [TOPIC] topic-with-configs-1
 	~ configs:
+		~ retention.ms: 100000 ( 604800000 )
 		- cleanup.policy (compact)
 		- segment.bytes (100000)
-		+ retention.ms: 100000
 
 
 Successfully applied.

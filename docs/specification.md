@@ -23,8 +23,9 @@ The desired state file consists of:
 
 - **ccloud** [Optional]: An object that contains an `enabled` field. Set this to `true` when using a Confluent Cloud cluster.
 - **topics** [Optional]:
-  - **defaults** [Optional]: Specify topic defaults so you do not need to repeat them for every topic. Currently only replication is supported.
+  - **defaults** [Optional]: Specify topic defaults so you do not need to repeat them for every topic. `partitions` and `replication` are supported.
   - **blacklist** [Optional]: Add a prefixed topic blacklist for ignoring specific topics when using `kafka-gitops`. This allows topics to be ignored from deletion if they are not defined in the desired state file.
+  - **whitelist** [Optional]: Add a prefixed topic whitelist to limit management to specific topic prefixes. This is mutually exclusive with `blacklist`, and all topics defined in the state file must match one of the whitelisted prefixes.
 
 **Example**:
 ```yaml
@@ -33,10 +34,11 @@ settings:
     enabled: true
   topics:
     defaults:
+      partitions: 6
       replication: 3
-    blacklist:
+    whitelist:
       prefixed:
-        - _confluent
+        - team-a.
 ```
 
 ## Topics
@@ -60,6 +62,8 @@ topics:
 ```
 
 If a default `replication` value is supplied in the `settings` block, then the `replication` field can be omitted. If a default `replication` value is provided and the `replication` field in the topic definition is set, the default will be overridden for that topic.
+
+If a default `partitions` value is supplied in the `settings` block, then the `partitions` field can also be omitted. If a default `partitions` value is provided and the `partitions` field in the topic definition is set, the default will be overridden for that topic.
 
 ## Services
 

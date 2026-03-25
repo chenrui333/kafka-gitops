@@ -30,8 +30,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class PlanManager {
@@ -65,7 +67,7 @@ public class PlanManager {
                 log.info("[PLAN] Topic {} does not exist; it will be created.", key);
                 topicPlan.setAction(PlanAction.ADD);
                 topicDetailsPlan.setPartitionsAction(PlanAction.ADD)
-                    .setPartitions(value.getPartitions())
+                    .setPartitions(value.getPartitions().get())
                     .setReplicationAction(PlanAction.ADD)
                     .setReplication(value.getReplication().get());
                 planTopicConfigurations(key, value, topicConfigs.get(key), topicPlan);
@@ -78,12 +80,12 @@ public class PlanManager {
                 topicDetailsPlan.setPartitions(topicDescription.partitions().size())
                     .setReplication(topicDescription.partitions().get(0).replicas().size());
 
-                if (value.getPartitions().intValue() != topicDescription.partitions().size()) {
-                    if( value.getPartitions().intValue() < topicDescription.partitions().size()) {
+                if (value.getPartitions().get().intValue() != topicDescription.partitions().size()) {
+                    if( value.getPartitions().get().intValue() < topicDescription.partitions().size()) {
                         throw new ValidationException("Removing the partition number is not supported by Apache Kafka "
-                            + "(topic: " + key + " ("+topicDescription.partitions().size()+" -> "+value.getPartitions().intValue()+"))");
+                            + "(topic: " + key + " ("+topicDescription.partitions().size()+" -> "+value.getPartitions().get().intValue()+"))");
                     }
-                    topicDetailsPlan.setPartitions(value.getPartitions())
+                    topicDetailsPlan.setPartitions(value.getPartitions().get())
                         .setPreviousPartitions(topicDescription.partitions().size());
                     topicDetailsPlan.setPartitionsAction(PlanAction.UPDATE);
                     topicDetailsAddOrUpdate = true;
@@ -114,6 +116,13 @@ public class PlanManager {
                 return;
             }
 
+            boolean outsideWhitelist = !desiredState.getPrefixedTopicsToManage().isEmpty()
+                    && desiredState.getPrefixedTopicsToManage().stream().noneMatch(currentTopicName::startsWith);
+            if (outsideWhitelist) {
+                log.info("[PLAN] Ignoring topic {} because it is outside the managed prefixes", currentTopicName);
+                return;
+            }
+
             if (!managerConfig.isDeleteDisabled() && desiredState.getTopics().getOrDefault(currentTopicName, null) == null) {
                 TopicPlan topicPlan = new TopicPlan.Builder()
                         .setName(currentTopicName)
@@ -126,33 +135,15 @@ public class PlanManager {
     }
 
     private void planTopicConfigurations(String topicName, TopicDetails topicDetails, List<ConfigEntry> configs, TopicPlan.Builder topicPlan) {
-        Map<String, TopicConfigPlan> configPlans = new HashMap<>();
+        Map<String, TopicConfigPlan> configPlans = new LinkedHashMap<>();
+        Map<String, ConfigEntry> currentConfigsByName = configs == null ? new HashMap<>() : configs.stream()
+                .collect(Collectors.toMap(ConfigEntry::name, it -> it, (left, right) -> left));
         List<ConfigEntry> customConfigs = configs == null ? new ArrayList<>() : configs.stream()
                 .filter(it -> it.source() == ConfigEntry.ConfigSource.DYNAMIC_TOPIC_CONFIG)
                 .collect(Collectors.toList());
 
-        customConfigs.forEach(currentConfig -> {
-            String newConfig = topicDetails.getConfigs().getOrDefault(currentConfig.name(), null);
-
-            TopicConfigPlan.Builder topicConfigPlan = new TopicConfigPlan.Builder()
-                    .setKey(currentConfig.name());
-
-            if (currentConfig.value().equals(newConfig)) {
-                topicConfigPlan.setAction(PlanAction.NO_CHANGE);
-                topicConfigPlan.setValue(currentConfig.value());
-                configPlans.put(currentConfig.name(), topicConfigPlan.build());
-            } else if (newConfig == null) {
-                topicConfigPlan.setAction(PlanAction.REMOVE);
-                topicConfigPlan.setPreviousValue(currentConfig.value());
-                configPlans.put(currentConfig.name(), topicConfigPlan.build());
-                if (topicPlan.getAction() == null || topicPlan.getAction().equals(PlanAction.NO_CHANGE)) {
-                  topicPlan.setAction(PlanAction.UPDATE);
-                }
-            }
-        });
-
         topicDetails.getConfigs().forEach((key, value) -> {
-            ConfigEntry currentConfig = customConfigs.stream().filter(it -> it.name().equals(key)).findFirst().orElse(null);
+            ConfigEntry currentConfig = currentConfigsByName.get(key);
 
             TopicConfigPlan.Builder topicConfigPlan = new TopicConfigPlan.Builder()
                     .setKey(key)
@@ -164,12 +155,28 @@ public class PlanManager {
                 if (topicPlan.getAction() == null || topicPlan.getAction().equals(PlanAction.NO_CHANGE)) {
                   topicPlan.setAction(PlanAction.UPDATE);
                 }
-            } else if (!currentConfig.value().equals(value)) {
+            } else if (!Objects.equals(currentConfig.value(), value)) {
                 topicConfigPlan.setPreviousValue(currentConfig.value())
                 .setAction(PlanAction.UPDATE);
                 configPlans.put(key, topicConfigPlan.build());
                 if (topicPlan.getAction() == null || topicPlan.getAction().equals(PlanAction.NO_CHANGE)) {
                   topicPlan.setAction(PlanAction.UPDATE);
+                }
+            } else {
+                topicConfigPlan.setAction(PlanAction.NO_CHANGE);
+                configPlans.put(key, topicConfigPlan.build());
+            }
+        });
+
+        customConfigs.forEach(currentConfig -> {
+            if (!topicDetails.getConfigs().containsKey(currentConfig.name())) {
+                TopicConfigPlan.Builder topicConfigPlan = new TopicConfigPlan.Builder()
+                        .setKey(currentConfig.name())
+                        .setPreviousValue(currentConfig.value())
+                        .setAction(PlanAction.REMOVE);
+                configPlans.put(currentConfig.name(), topicConfigPlan.build());
+                if (topicPlan.getAction() == null || topicPlan.getAction().equals(PlanAction.NO_CHANGE)) {
+                    topicPlan.setAction(PlanAction.UPDATE);
                 }
             }
         });

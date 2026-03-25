@@ -46,6 +46,7 @@ class PlanCommandP1IntegrationSpec extends Specification {
 
         where:
         planName << [
+                'invalid-default-partitions-1',
                 'invalid-topic-partitions',
                 'invalid-topic-replication'
         ]

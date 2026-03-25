@@ -8,8 +8,8 @@
                 {
                     "key": "retention.ms",
                     "value": "60000",
-                    "previousValue": null,
-                    "action": "ADD"
+                    "previousValue": "604800000",
+                    "action": "UPDATE"
                 }
             ]
         },
@@ -32,6 +32,12 @@
             "topicDetailsPlan": null,
             "topicConfigPlans": [
                 {
+                    "key": "retention.ms",
+                    "value": "100000",
+                    "previousValue": "604800000",
+                    "action": "UPDATE"
+                },
+                {
                     "key": "cleanup.policy",
                     "value": null,
                     "previousValue": "compact",
@@ -42,12 +48,6 @@
                     "value": null,
                     "previousValue": "100000",
                     "action": "REMOVE"
-                },
-                {
-                    "key": "retention.ms",
-                    "value": "100000",
-                    "previousValue": null,
-                    "action": "ADD"
                 }
             ]
         },

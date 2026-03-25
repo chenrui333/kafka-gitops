@@ -9,6 +9,8 @@ import java.util.Optional;
 @JsonDeserialize(builder = SettingsTopicsDefaults.Builder.class)
 public interface SettingsTopicsDefaults {
 
+    Optional<Integer> getPartitions();
+
     Optional<Integer> getReplication();
 
     class Builder extends SettingsTopicsDefaults_Builder {

@@ -1,0 +1,10 @@
+settings:
+  topics:
+    whitelist:
+      prefixed:
+        - test
+
+topics:
+  test-new:
+    partitions: 6
+    replication: 2

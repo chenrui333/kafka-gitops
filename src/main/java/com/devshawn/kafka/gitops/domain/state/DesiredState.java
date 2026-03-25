@@ -16,6 +16,8 @@ public interface DesiredState {
 
     List<String> getPrefixedTopicsToIgnore();
 
+    List<String> getPrefixedTopicsToManage();
+
     class Builder extends DesiredState_Builder {
     }
 }

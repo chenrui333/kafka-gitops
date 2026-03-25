@@ -1,0 +1,3 @@
+Generating execution plan...
+
+[INVALID] Topic whitelist and blacklist are mutually exclusive.

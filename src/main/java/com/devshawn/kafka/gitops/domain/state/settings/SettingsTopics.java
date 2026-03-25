@@ -13,6 +13,8 @@ public interface SettingsTopics {
 
     Optional<SettingsTopicsBlacklist> getBlacklist();
 
+    Optional<SettingsTopicsWhitelist> getWhitelist();
+
     class Builder extends SettingsTopics_Builder {
     }
 }

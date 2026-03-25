@@ -6,6 +6,14 @@ import java.util.Optional;
 
 public class StateUtil {
 
+    public static Optional<Integer> fetchPartitions(DesiredStateFile desiredStateFile) {
+        if (desiredStateFile.getSettings().isPresent() && desiredStateFile.getSettings().get().getTopics().isPresent()
+                && desiredStateFile.getSettings().get().getTopics().get().getDefaults().isPresent()) {
+            return desiredStateFile.getSettings().get().getTopics().get().getDefaults().get().getPartitions();
+        }
+        return Optional.empty();
+    }
+
     public static Optional<Integer> fetchReplication(DesiredStateFile desiredStateFile) {
         if (desiredStateFile.getSettings().isPresent() && desiredStateFile.getSettings().get().getTopics().isPresent()
                 && desiredStateFile.getSettings().get().getTopics().get().getDefaults().isPresent()) {

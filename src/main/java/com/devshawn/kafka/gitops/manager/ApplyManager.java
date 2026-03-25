@@ -77,16 +77,20 @@ public class ApplyManager {
     }
 
     public void applyAcls(DesiredPlan desiredPlan) {
-        desiredPlan.getAclPlans().forEach(aclPlan -> {
-            if (aclPlan.getAction() == PlanAction.ADD) {
-                LogUtil.printAclPreApply(aclPlan);
-                kafkaService.createAcl(aclPlan.getAclDetails().toAclBinding());
-                LogUtil.printPostApply();
-            } else if (aclPlan.getAction() == PlanAction.REMOVE && !managerConfig.isDeleteDisabled()) {
-                LogUtil.printAclPreApply(aclPlan);
-                kafkaService.deleteAcl(aclPlan.getAclDetails().toAclBinding());
-                LogUtil.printPostApply();
-            }
-        });
+        desiredPlan.getAclPlans().stream()
+                .filter(aclPlan -> aclPlan.getAction() == PlanAction.ADD)
+                .forEach(aclPlan -> {
+                    LogUtil.printAclPreApply(aclPlan);
+                    kafkaService.createAcl(aclPlan.getAclDetails().toAclBinding());
+                    LogUtil.printPostApply();
+                });
+
+        desiredPlan.getAclPlans().stream()
+                .filter(aclPlan -> aclPlan.getAction() == PlanAction.REMOVE && !managerConfig.isDeleteDisabled())
+                .forEach(aclPlan -> {
+                    LogUtil.printAclPreApply(aclPlan);
+                    kafkaService.deleteAcl(aclPlan.getAclDetails().toAclBinding());
+                    LogUtil.printPostApply();
+                });
     }
 }
