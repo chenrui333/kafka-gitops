@@ -189,6 +189,12 @@ class ApplyCommandIntegrationSpec extends Specification {
         TestUtils.withAdminClient { adminClient ->
             TestUtils.createTopic('retention-test-topic', 3, adminClient)
         }
+        // Kafka 4.0 has slower topic/config propagation than 3.9;
+        // poll for visibility before apply and after apply for config state.
+        def conditions = new PollingConditions(timeout: 30, initialDelay: 1, factor: 1.25)
+        conditions.eventually {
+            assert TestUtils.getTopics().contains('retention-test-topic')
+        }
         String planFile = TestUtils.getResourceFilePath('plans/retention-apply-set-plan.json')
         MainCommand mainCommand = new MainCommand()
         CommandLine cmd = new CommandLine(mainCommand)
@@ -198,13 +204,11 @@ class ApplyCommandIntegrationSpec extends Specification {
 
         then:
         exitCode == 0
-
-        when:
-        def config = TestUtils.getDynamicTopicConfig('retention-test-topic')
-
-        then:
-        config['retention.ms'] == '86400000'
-        config['retention.bytes'] == '1073741824'
+        conditions.eventually {
+            def config = TestUtils.getDynamicTopicConfig('retention-test-topic')
+            assert config['retention.ms'] == '86400000'
+            assert config['retention.bytes'] == '1073741824'
+        }
 
         cleanup:
         TestUtils.cleanUpCluster()
@@ -216,6 +220,12 @@ class ApplyCommandIntegrationSpec extends Specification {
             TestUtils.createTopic('retention-test-topic', 3, adminClient,
                     ['retention.ms': '86400000', 'retention.bytes': '1073741824'])
         }
+        // Kafka 4.0 has slower topic/config propagation than 3.9;
+        // poll for visibility before apply and after apply for config state.
+        def conditions = new PollingConditions(timeout: 30, initialDelay: 1, factor: 1.25)
+        conditions.eventually {
+            assert TestUtils.getTopics().contains('retention-test-topic')
+        }
         String planFile = TestUtils.getResourceFilePath('plans/retention-apply-update-plan.json')
         MainCommand mainCommand = new MainCommand()
         CommandLine cmd = new CommandLine(mainCommand)
@@ -225,13 +235,11 @@ class ApplyCommandIntegrationSpec extends Specification {
 
         then:
         exitCode == 0
-
-        when:
-        def config = TestUtils.getDynamicTopicConfig('retention-test-topic')
-
-        then:
-        config['retention.ms'] == '-1'
-        config['retention.bytes'] == '524288000'
+        conditions.eventually {
+            def config = TestUtils.getDynamicTopicConfig('retention-test-topic')
+            assert config['retention.ms'] == '-1'
+            assert config['retention.bytes'] == '524288000'
+        }
 
         cleanup:
         TestUtils.cleanUpCluster()
@@ -243,6 +251,12 @@ class ApplyCommandIntegrationSpec extends Specification {
             TestUtils.createTopic('retention-test-topic', 3, adminClient,
                     ['retention.ms': '-1', 'retention.bytes': '524288000'])
         }
+        // Kafka 4.0 has slower topic/config propagation than 3.9;
+        // poll for visibility before apply and after apply for config state.
+        def conditions = new PollingConditions(timeout: 30, initialDelay: 1, factor: 1.25)
+        conditions.eventually {
+            assert TestUtils.getTopics().contains('retention-test-topic')
+        }
         String planFile = TestUtils.getResourceFilePath('plans/retention-apply-remove-plan.json')
         MainCommand mainCommand = new MainCommand()
         CommandLine cmd = new CommandLine(mainCommand)
@@ -252,13 +266,11 @@ class ApplyCommandIntegrationSpec extends Specification {
 
         then:
         exitCode == 0
-
-        when:
-        def config = TestUtils.getDynamicTopicConfig('retention-test-topic')
-
-        then:
-        !config.containsKey('retention.ms')
-        !config.containsKey('retention.bytes')
+        conditions.eventually {
+            def config = TestUtils.getDynamicTopicConfig('retention-test-topic')
+            assert !config.containsKey('retention.ms')
+            assert !config.containsKey('retention.bytes')
+        }
 
         cleanup:
         TestUtils.cleanUpCluster()

@@ -4,6 +4,7 @@ import com.devshawn.kafka.gitops.domain.state.DesiredStateFile
 import com.devshawn.kafka.gitops.service.ParserService
 import picocli.CommandLine
 import spock.lang.Specification
+import spock.util.concurrent.PollingConditions
 
 class ImportCommandIntegrationSpec extends Specification {
 
@@ -60,6 +61,11 @@ class ImportCommandIntegrationSpec extends Specification {
         TestUtils.withAdminClient { adminClient ->
             TestUtils.createTopic('retention-bytes-topic', 3, adminClient, ['retention.bytes': '1073741824'])
         }
+        // Kafka 4.0 has slower topic metadata propagation than 3.9;
+        // wait for the topic to be visible before importing.
+        new PollingConditions(timeout: 30, initialDelay: 1, factor: 1.25).eventually {
+            assert TestUtils.getTopics().contains('retention-bytes-topic')
+        }
         File outputFile = File.createTempFile('kafka-gitops-import-retention-bytes', '.yaml')
         MainCommand mainCommand = new MainCommand()
         CommandLine cmd = new CommandLine(mainCommand)
@@ -86,6 +92,11 @@ class ImportCommandIntegrationSpec extends Specification {
         TestUtils.withAdminClient { adminClient ->
             TestUtils.createTopic('infinite-retention-topic', 1, adminClient, ['retention.ms': '-1'])
         }
+        // Kafka 4.0 has slower topic metadata propagation than 3.9;
+        // wait for the topic to be visible before importing.
+        new PollingConditions(timeout: 30, initialDelay: 1, factor: 1.25).eventually {
+            assert TestUtils.getTopics().contains('infinite-retention-topic')
+        }
         File outputFile = File.createTempFile('kafka-gitops-import-retention-infinite', '.yaml')
         MainCommand mainCommand = new MainCommand()
         CommandLine cmd = new CommandLine(mainCommand)
@@ -111,6 +122,11 @@ class ImportCommandIntegrationSpec extends Specification {
         given:
         TestUtils.withAdminClient { adminClient ->
             TestUtils.createTopic('no-limit-bytes-topic', 1, adminClient, ['retention.bytes': '-1'])
+        }
+        // Kafka 4.0 has slower topic metadata propagation than 3.9;
+        // wait for the topic to be visible before importing.
+        new PollingConditions(timeout: 30, initialDelay: 1, factor: 1.25).eventually {
+            assert TestUtils.getTopics().contains('no-limit-bytes-topic')
         }
         File outputFile = File.createTempFile('kafka-gitops-import-retention-bytes-neg', '.yaml')
         MainCommand mainCommand = new MainCommand()
