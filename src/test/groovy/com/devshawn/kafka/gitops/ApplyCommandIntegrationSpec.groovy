@@ -184,6 +184,86 @@ class ApplyCommandIntegrationSpec extends Specification {
         topicDescriptions['topic-with-configs-2'].partitions().every { it.replicas().size() == 1 }
     }
 
+    void 'test apply sets retention.ms and retention.bytes on topic with no retention config'() {
+        setup:
+        TestUtils.withAdminClient { adminClient ->
+            TestUtils.createTopic('retention-test-topic', 3, adminClient)
+        }
+        String planFile = TestUtils.getResourceFilePath('plans/retention-apply-set-plan.json')
+        MainCommand mainCommand = new MainCommand()
+        CommandLine cmd = new CommandLine(mainCommand)
+
+        when:
+        int exitCode = cmd.execute('-f', planFile, 'apply', '-p', planFile)
+
+        then:
+        exitCode == 0
+
+        when:
+        def config = TestUtils.getDynamicTopicConfig('retention-test-topic')
+
+        then:
+        config['retention.ms'] == '86400000'
+        config['retention.bytes'] == '1073741824'
+
+        cleanup:
+        TestUtils.cleanUpCluster()
+    }
+
+    void 'test apply updates retention.ms and retention.bytes to new values'() {
+        setup:
+        TestUtils.withAdminClient { adminClient ->
+            TestUtils.createTopic('retention-test-topic', 3, adminClient,
+                    ['retention.ms': '86400000', 'retention.bytes': '1073741824'])
+        }
+        String planFile = TestUtils.getResourceFilePath('plans/retention-apply-update-plan.json')
+        MainCommand mainCommand = new MainCommand()
+        CommandLine cmd = new CommandLine(mainCommand)
+
+        when:
+        int exitCode = cmd.execute('-f', planFile, 'apply', '-p', planFile)
+
+        then:
+        exitCode == 0
+
+        when:
+        def config = TestUtils.getDynamicTopicConfig('retention-test-topic')
+
+        then:
+        config['retention.ms'] == '-1'
+        config['retention.bytes'] == '524288000'
+
+        cleanup:
+        TestUtils.cleanUpCluster()
+    }
+
+    void 'test apply removes retention.ms and retention.bytes (reset to broker defaults)'() {
+        setup:
+        TestUtils.withAdminClient { adminClient ->
+            TestUtils.createTopic('retention-test-topic', 3, adminClient,
+                    ['retention.ms': '-1', 'retention.bytes': '524288000'])
+        }
+        String planFile = TestUtils.getResourceFilePath('plans/retention-apply-remove-plan.json')
+        MainCommand mainCommand = new MainCommand()
+        CommandLine cmd = new CommandLine(mainCommand)
+
+        when:
+        int exitCode = cmd.execute('-f', planFile, 'apply', '-p', planFile)
+
+        then:
+        exitCode == 0
+
+        when:
+        def config = TestUtils.getDynamicTopicConfig('retention-test-topic')
+
+        then:
+        !config.containsKey('retention.ms')
+        !config.containsKey('retention.bytes')
+
+        cleanup:
+        TestUtils.cleanUpCluster()
+    }
+
     void 'test stale add plan applies successfully when topic already exists'() {
         setup:
         ByteArrayOutputStream out = new ByteArrayOutputStream()

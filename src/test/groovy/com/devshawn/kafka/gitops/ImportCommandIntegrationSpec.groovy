@@ -54,4 +54,82 @@ class ImportCommandIntegrationSpec extends Specification {
         outputFile.delete()
         TestUtils.cleanUpCluster()
     }
+
+    void 'test import captures retention.bytes correctly'() {
+        given:
+        TestUtils.withAdminClient { adminClient ->
+            TestUtils.createTopic('retention-bytes-topic', 3, adminClient, ['retention.bytes': '1073741824'])
+        }
+        File outputFile = File.createTempFile('kafka-gitops-import-retention-bytes', '.yaml')
+        MainCommand mainCommand = new MainCommand()
+        CommandLine cmd = new CommandLine(mainCommand)
+
+        when:
+        int exitCode = cmd.execute('import', '-o', outputFile.absolutePath)
+
+        then:
+        exitCode == 0
+
+        when:
+        DesiredStateFile importedState = new ParserService(outputFile).parseStateFile()
+
+        then:
+        importedState.getTopics().get('retention-bytes-topic').getConfigs().get('retention.bytes') == '1073741824'
+
+        cleanup:
+        outputFile.delete()
+        TestUtils.cleanUpCluster()
+    }
+
+    void 'test import captures retention.ms=-1 (infinite) correctly'() {
+        given:
+        TestUtils.withAdminClient { adminClient ->
+            TestUtils.createTopic('infinite-retention-topic', 1, adminClient, ['retention.ms': '-1'])
+        }
+        File outputFile = File.createTempFile('kafka-gitops-import-retention-infinite', '.yaml')
+        MainCommand mainCommand = new MainCommand()
+        CommandLine cmd = new CommandLine(mainCommand)
+
+        when:
+        int exitCode = cmd.execute('import', '-o', outputFile.absolutePath)
+
+        then:
+        exitCode == 0
+
+        when:
+        DesiredStateFile importedState = new ParserService(outputFile).parseStateFile()
+
+        then:
+        importedState.getTopics().get('infinite-retention-topic').getConfigs().get('retention.ms') == '-1'
+
+        cleanup:
+        outputFile.delete()
+        TestUtils.cleanUpCluster()
+    }
+
+    void 'test import captures retention.bytes=-1 (no limit) correctly'() {
+        given:
+        TestUtils.withAdminClient { adminClient ->
+            TestUtils.createTopic('no-limit-bytes-topic', 1, adminClient, ['retention.bytes': '-1'])
+        }
+        File outputFile = File.createTempFile('kafka-gitops-import-retention-bytes-neg', '.yaml')
+        MainCommand mainCommand = new MainCommand()
+        CommandLine cmd = new CommandLine(mainCommand)
+
+        when:
+        int exitCode = cmd.execute('import', '-o', outputFile.absolutePath)
+
+        then:
+        exitCode == 0
+
+        when:
+        DesiredStateFile importedState = new ParserService(outputFile).parseStateFile()
+
+        then:
+        importedState.getTopics().get('no-limit-bytes-topic').getConfigs().get('retention.bytes') == '-1'
+
+        cleanup:
+        outputFile.delete()
+        TestUtils.cleanUpCluster()
+    }
 }

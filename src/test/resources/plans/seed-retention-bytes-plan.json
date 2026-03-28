@@ -8,8 +8,8 @@
                 {
                     "key": "retention.bytes",
                     "value": "1073741824",
-                    "previousValue": null,
-                    "action": "ADD"
+                    "previousValue": "-1",
+                    "action": "UPDATE"
                 }
             ]
         },
@@ -21,8 +21,8 @@
                 {
                     "key": "retention.bytes",
                     "value": "524288000",
-                    "previousValue": null,
-                    "action": "ADD"
+                    "previousValue": "-1",
+                    "action": "UPDATE"
                 }
             ]
         },
@@ -34,8 +34,8 @@
                 {
                     "key": "retention.bytes",
                     "value": "1073741824",
-                    "previousValue": null,
-                    "action": "ADD"
+                    "previousValue": "-1",
+                    "action": "UPDATE"
                 }
             ]
         }

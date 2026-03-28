@@ -1,0 +1,24 @@
+{
+    "topicPlans": [
+        {
+            "name": "retention-test-topic",
+            "action": "UPDATE",
+            "topicDetailsPlan": null,
+            "topicConfigPlans": [
+                {
+                    "key": "retention.ms",
+                    "value": "-1",
+                    "previousValue": "86400000",
+                    "action": "UPDATE"
+                },
+                {
+                    "key": "retention.bytes",
+                    "value": "524288000",
+                    "previousValue": "1073741824",
+                    "action": "UPDATE"
+                }
+            ]
+        }
+    ],
+    "aclPlans": []
+}

@@ -178,6 +178,18 @@ class TestUtils {
         }
     }
 
+    static Map<String, String> getDynamicTopicConfig(String topicName) {
+        return withAdminClient { adminClient ->
+            def resource = new org.apache.kafka.common.config.ConfigResource(
+                    org.apache.kafka.common.config.ConfigResource.Type.TOPIC, topicName)
+            def configs = waitFor(adminClient.describeConfigs(Collections.singletonList(resource)).all())
+            def topicConfig = configs.get(resource)
+            return topicConfig.entries()
+                    .findAll { it.source() == org.apache.kafka.clients.admin.ConfigEntry.ConfigSource.DYNAMIC_TOPIC_CONFIG }
+                    .collectEntries { [(it.name()): it.value()] }
+        }
+    }
+
     static List<AclBinding> getAcls(AclBindingFilter filter) {
         return withAdminClient { adminClient ->
             new ArrayList<>(waitFor(adminClient.describeAcls(filter).values()))

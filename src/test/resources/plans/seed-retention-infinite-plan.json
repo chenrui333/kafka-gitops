@@ -8,14 +8,8 @@
                 {
                     "key": "retention.ms",
                     "value": "-1",
-                    "previousValue": null,
-                    "action": "ADD"
-                },
-                {
-                    "key": "retention.bytes",
-                    "value": "-1",
-                    "previousValue": null,
-                    "action": "ADD"
+                    "previousValue": "604800000",
+                    "action": "UPDATE"
                 }
             ]
         },

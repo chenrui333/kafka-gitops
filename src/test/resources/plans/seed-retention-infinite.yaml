@@ -8,7 +8,6 @@ topics:
     replication: 2
     configs:
       retention.ms: "-1"
-      retention.bytes: "-1"
 
   topic-with-configs-1:
     partitions: 3

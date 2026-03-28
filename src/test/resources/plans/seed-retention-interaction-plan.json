@@ -8,26 +8,20 @@
                 {
                     "key": "retention.ms",
                     "value": "86400000",
-                    "previousValue": null,
-                    "action": "ADD"
+                    "previousValue": "604800000",
+                    "action": "UPDATE"
                 },
                 {
                     "key": "retention.bytes",
                     "value": "1073741824",
-                    "previousValue": null,
-                    "action": "ADD"
+                    "previousValue": "-1",
+                    "action": "UPDATE"
                 },
                 {
                     "key": "cleanup.policy",
                     "value": "compact",
-                    "previousValue": null,
-                    "action": "ADD"
-                },
-                {
-                    "key": "min.insync.replicas",
-                    "value": "1",
-                    "previousValue": null,
-                    "action": "ADD"
+                    "previousValue": "delete",
+                    "action": "UPDATE"
                 }
             ]
         },
@@ -41,18 +35,6 @@
                     "value": "delete",
                     "previousValue": "compact",
                     "action": "UPDATE"
-                },
-                {
-                    "key": "retention.ms",
-                    "value": "604800000",
-                    "previousValue": null,
-                    "action": "ADD"
-                },
-                {
-                    "key": "retention.bytes",
-                    "value": "-1",
-                    "previousValue": null,
-                    "action": "ADD"
                 }
             ]
         },
@@ -70,8 +52,8 @@
                 {
                     "key": "retention.bytes",
                     "value": "524288000",
-                    "previousValue": null,
-                    "action": "ADD"
+                    "previousValue": "-1",
+                    "action": "UPDATE"
                 }
             ]
         }
