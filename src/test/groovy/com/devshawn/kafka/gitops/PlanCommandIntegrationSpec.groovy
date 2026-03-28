@@ -134,6 +134,9 @@ class PlanCommandIntegrationSpec extends Specification {
         "seed-topic-add-replicas"           | false
         "seed-topic-remove-replicas"        | false
         "seed-topic-add-partitions"         | false
+        "seed-retention-bytes"              | false
+        "seed-retention-infinite"           | false
+        "seed-retention-interaction"        | false
     }
 
     void 'test include unchanged flag - #planName #includeUnchanged'() {

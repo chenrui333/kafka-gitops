@@ -1,0 +1,25 @@
+topics:
+  delete-topic:
+    partitions: 1
+    replication: 2
+
+  test-topic:
+    partitions: 1
+    replication: 2
+    configs:
+      retention.bytes: 1073741824
+
+  topic-with-configs-1:
+    partitions: 3
+    replication: 2
+    configs:
+      cleanup.policy: compact
+      segment.bytes: 100000
+      retention.bytes: 524288000
+
+  topic-with-configs-2:
+    partitions: 6
+    replication: 2
+    configs:
+      retention.ms: 60000
+      retention.bytes: 1073741824

@@ -1,0 +1,51 @@
+{
+    "topicPlans": [
+        {
+            "name": "test-topic",
+            "action": "UPDATE",
+            "topicDetailsPlan": null,
+            "topicConfigPlans": [
+                {
+                    "key": "retention.ms",
+                    "value": "-1",
+                    "previousValue": null,
+                    "action": "ADD"
+                },
+                {
+                    "key": "retention.bytes",
+                    "value": "-1",
+                    "previousValue": null,
+                    "action": "ADD"
+                }
+            ]
+        },
+        {
+            "name": "topic-with-configs-2",
+            "action": "UPDATE",
+            "topicDetailsPlan": null,
+            "topicConfigPlans": [
+                {
+                    "key": "retention.ms",
+                    "value": "-1",
+                    "previousValue": "60000",
+                    "action": "UPDATE"
+                }
+            ]
+        }
+    ],
+    "aclPlans": [
+        {
+            "name": "Unnamed ACL",
+            "aclDetails": {
+                "name": "test-topic",
+                "type": "TOPIC",
+                "pattern": "LITERAL",
+                "principal": "User:test",
+                "host": "*",
+                "operation": "READ",
+                "permission": "ALLOW"
+            },
+            "action": "REMOVE"
+        }
+    ]
+}

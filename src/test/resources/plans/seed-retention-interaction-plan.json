@@ -1,0 +1,94 @@
+{
+    "topicPlans": [
+        {
+            "name": "test-topic",
+            "action": "UPDATE",
+            "topicDetailsPlan": null,
+            "topicConfigPlans": [
+                {
+                    "key": "retention.ms",
+                    "value": "86400000",
+                    "previousValue": null,
+                    "action": "ADD"
+                },
+                {
+                    "key": "retention.bytes",
+                    "value": "1073741824",
+                    "previousValue": null,
+                    "action": "ADD"
+                },
+                {
+                    "key": "cleanup.policy",
+                    "value": "compact",
+                    "previousValue": null,
+                    "action": "ADD"
+                },
+                {
+                    "key": "min.insync.replicas",
+                    "value": "1",
+                    "previousValue": null,
+                    "action": "ADD"
+                }
+            ]
+        },
+        {
+            "name": "topic-with-configs-1",
+            "action": "UPDATE",
+            "topicDetailsPlan": null,
+            "topicConfigPlans": [
+                {
+                    "key": "cleanup.policy",
+                    "value": "delete",
+                    "previousValue": "compact",
+                    "action": "UPDATE"
+                },
+                {
+                    "key": "retention.ms",
+                    "value": "604800000",
+                    "previousValue": null,
+                    "action": "ADD"
+                },
+                {
+                    "key": "retention.bytes",
+                    "value": "-1",
+                    "previousValue": null,
+                    "action": "ADD"
+                }
+            ]
+        },
+        {
+            "name": "topic-with-configs-2",
+            "action": "UPDATE",
+            "topicDetailsPlan": null,
+            "topicConfigPlans": [
+                {
+                    "key": "retention.ms",
+                    "value": "172800000",
+                    "previousValue": "60000",
+                    "action": "UPDATE"
+                },
+                {
+                    "key": "retention.bytes",
+                    "value": "524288000",
+                    "previousValue": null,
+                    "action": "ADD"
+                }
+            ]
+        }
+    ],
+    "aclPlans": [
+        {
+            "name": "Unnamed ACL",
+            "aclDetails": {
+                "name": "test-topic",
+                "type": "TOPIC",
+                "pattern": "LITERAL",
+                "principal": "User:test",
+                "host": "*",
+                "operation": "READ",
+                "permission": "ALLOW"
+            },
+            "action": "REMOVE"
+        }
+    ]
+}
