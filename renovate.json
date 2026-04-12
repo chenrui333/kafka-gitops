@@ -1,13 +1,12 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended",
-    "helpers:pinGitHubActionDigestsToSemver",
-    "helpers:githubDigestChangelogs"
+    "config:best-practices"
   ],
   "dependencyDashboard": true,
   "enabledManagers": ["gradle", "github-actions"],
   "separateMinorPatch": true,
+  "minimumReleaseAge": "7 days",
   "packageRules": [
     {
       "description": "Automerge safe dependency updates after CI passes",
