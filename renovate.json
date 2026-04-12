@@ -7,19 +7,15 @@
   "enabledManagers": ["gradle", "github-actions"],
   "separateMinorPatch": true,
   "minimumReleaseAge": "7 days",
+  "automerge": true,
+  "automergeType": "pr",
+  "platformAutomerge": true,
   "packageRules": [
-    {
-      "description": "Automerge safe dependency updates after CI passes",
-      "matchManagers": ["gradle", "github-actions"],
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
-      "automerge": true,
-      "automergeType": "pr",
-      "platformAutomerge": true
-    },
     {
       "description": "Require manual approval for major updates",
       "matchManagers": ["gradle", "github-actions"],
       "matchUpdateTypes": ["major"],
+      "automerge": false,
       "dependencyDashboardApproval": true
     }
   ]
