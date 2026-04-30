@@ -62,7 +62,7 @@ dependencies {
     compileOnly 'org.inferred:freebuilder:2.8.0'
     annotationProcessor 'org.inferred:freebuilder:2.8.0'
 
-    testImplementation 'org.apache.groovy:groovy:4.0.30'
+    testImplementation 'org.apache.groovy:groovy:4.0.31'
     testImplementation 'org.spockframework:spock-core:2.4-groovy-4.0'
     testImplementation 'org.skyscreamer:jsonassert:1.5.3'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.14.1'
