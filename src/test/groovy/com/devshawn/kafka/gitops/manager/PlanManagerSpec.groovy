@@ -303,6 +303,32 @@ class PlanManagerSpec extends Specification {
         topicPlan.getTopicConfigPlans().first().getKey() == 'compression.type'
     }
 
+    void 'planTopics does not describe configs for ignored topics outside desired state'() {
+        given:
+        KafkaService kafkaService = new KafkaService(new KafkaGitopsConfig.Builder().putConfig('bootstrap.servers', 'unused').build()) {
+            @Override
+            Map<String, TopicDescription> getTopics() {
+                return ['test-streams-changelog': topicDescription('test-streams-changelog', 1, 2)]
+            }
+
+            @Override
+            Map<ConfigResource, Config> describeConfigsForTopics(List<String> topicNames) {
+                throw new AssertionError('Config lookup should only run for existing desired topics')
+            }
+        }
+        PlanManager sut = new PlanManager(managerConfig(), kafkaService, new ObjectMapper())
+        DesiredState desiredState = new DesiredState.Builder()
+                .addPrefixedTopicsToIgnore('test-streams')
+                .build()
+        DesiredPlan.Builder desiredPlan = new DesiredPlan.Builder()
+
+        when:
+        sut.planTopics(desiredState, desiredPlan)
+
+        then:
+        desiredPlan.build().getTopicPlans().isEmpty()
+    }
+
     private static ManagerConfig managerConfig() {
         return new ManagerConfig.Builder()
                 .setVerboseRequested(false)

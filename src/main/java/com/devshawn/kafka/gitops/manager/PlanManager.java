@@ -53,7 +53,10 @@ public class PlanManager {
     public void planTopics(DesiredState desiredState, DesiredPlan.Builder desiredPlan) {
         Map<String, TopicDescription> topics = kafkaService.getTopics(); 
         List<String> topicNames = topics.entrySet().stream().map(Map.Entry::getKey).collect(Collectors.toList());
-        Map<String, List<ConfigEntry>> topicConfigs = fetchTopicConfigurations(topicNames);
+        List<String> desiredExistingTopicNames = desiredState.getTopics().keySet().stream()
+                .filter(topicNames::contains)
+                .collect(Collectors.toList());
+        Map<String, List<ConfigEntry>> topicConfigs = fetchTopicConfigurations(desiredExistingTopicNames);
 
         desiredState.getTopics().forEach((key, value) -> {
             TopicDetailsPlan.Builder topicDetailsPlan = new TopicDetailsPlan.Builder();
@@ -264,6 +267,9 @@ public class PlanManager {
 
     private Map<String, List<ConfigEntry>> fetchTopicConfigurations(List<String> topicNames) {
         Map<String, List<ConfigEntry>> map = new HashMap<>();
+        if (topicNames.isEmpty()) {
+            return map;
+        }
         Map<ConfigResource, Config> configs = kafkaService.describeConfigsForTopics(topicNames);
         configs.forEach((key, value) -> map.put(key.name(), new ArrayList<ConfigEntry>(value.entries())));
         return map;

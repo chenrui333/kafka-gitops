@@ -20,6 +20,8 @@ import java.util.concurrent.TimeUnit
 class TestUtils {
     private static final int CLEANUP_ATTEMPTS = 30
     private static final long CLEANUP_RETRY_MS = 2000L
+    private static final int TOPIC_STABILITY_CHECKS = 3
+    private static final long TOPIC_STABILITY_RETRY_MS = 500L
 
     static String getFileContent(String fileName) {
         File file = new File(fileName)
@@ -42,9 +44,7 @@ class TestUtils {
         try {
             List<AclBindingFilter> filters = getCleanupFilters()
             withAdminClient { adminClient ->
-                Set<String> deletedTopics = [] as Set<String>
                 KafkaFuture<Void> topicDeletionFuture = null
-                int stableTopicDeletionChecks = 0
 
                 waitForCleanup('partition reassignments to finish') {
                     Map<TopicPartition, PartitionReassignment> reassignments = waitFor(adminClient.listPartitionReassignments().reassignments())
@@ -54,8 +54,6 @@ class TestUtils {
                 waitForCleanup('topics to be deleted') {
                     Set<String> topics = waitFor(adminClient.listTopics().names())
                     if (!topics.isEmpty()) {
-                        stableTopicDeletionChecks = 0
-                        deletedTopics.addAll(topics)
                         topicDeletionFuture = adminClient.deleteTopics(topics).all()
                     }
 
@@ -69,13 +67,12 @@ class TestUtils {
 
                     Set<String> remainingTopics = waitFor(adminClient.listTopics().names())
                     if (!remainingTopics.isEmpty()) {
-                        stableTopicDeletionChecks = 0
                         return "Remaining topics: ${remainingTopics.toList().sort()}"
                     }
 
-                    if (!deletedTopics.isEmpty() && stableTopicDeletionChecks < 1) {
-                        stableTopicDeletionChecks++
-                        return "Waiting for deleted topics to settle: ${deletedTopics.toList().sort()}"
+                    String unstableTopics = waitForStableEmptyTopics(adminClient)
+                    if (unstableTopics != null) {
+                        return unstableTopics
                     }
 
                     return null
@@ -143,6 +140,14 @@ class TestUtils {
             newTopic.configs(configs)
         }
         waitFor(adminClient.createTopics(Collections.singletonList(newTopic)).all())
+        waitForCleanup("topic ${name} to be visible") {
+            try {
+                Map<String, ?> descriptions = waitFor(adminClient.describeTopics(Collections.singleton(name)).allTopicNames())
+                return descriptions.containsKey(name) ? null : "Topic ${name} is not visible yet"
+            } catch (Exception ex) {
+                return "Topic ${name} is not visible yet: ${ex.message}"
+            }
+        }
     }
 
     static void createAcl(AdminClient adminClient) {
@@ -231,6 +236,17 @@ class TestUtils {
         return reassignments.keySet()
                 .collect { topicPartition -> "${topicPartition.topic()}-${topicPartition.partition()}" }
                 .sort()
+    }
+
+    private static String waitForStableEmptyTopics(AdminClient adminClient) {
+        for (int check = 0; check < TOPIC_STABILITY_CHECKS; check++) {
+            Thread.sleep(TOPIC_STABILITY_RETRY_MS)
+            Set<String> topics = waitFor(adminClient.listTopics().names())
+            if (!topics.isEmpty()) {
+                return "Remaining topics after empty check: ${topics.toList().sort()}"
+            }
+        }
+        return null
     }
 
     static void deleteTopics() {
