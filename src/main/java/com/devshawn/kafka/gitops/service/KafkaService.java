@@ -141,6 +141,9 @@ public class KafkaService {
     }
 
     public void updateTopicReplication(Collection<Node> clusterNodes, String topicName, Integer integer) {
+        if (integer == null || integer < 1) {
+            throw new ValidationException("Replication factor must be a positive integer, got: " + integer);
+        }
         try (final AdminClient adminClient = buildAdminClient()) {
             Map<String, TopicDescription> originalTopicDescription = getTopicDescription(Collections.singleton(topicName), adminClient);
             Map<TopicPartition, Optional<NewPartitionReassignment>> newReassignment = new HashMap<>();
