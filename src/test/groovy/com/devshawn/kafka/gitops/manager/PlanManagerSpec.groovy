@@ -6,6 +6,7 @@ import com.devshawn.kafka.gitops.domain.plan.DesiredPlan
 import com.devshawn.kafka.gitops.domain.state.DesiredState
 import com.devshawn.kafka.gitops.domain.state.TopicDetails
 import com.devshawn.kafka.gitops.enums.PlanAction
+import com.devshawn.kafka.gitops.exception.ValidationException
 import com.devshawn.kafka.gitops.service.KafkaService
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.kafka.clients.admin.Config
@@ -301,6 +302,37 @@ class PlanManagerSpec extends Specification {
         topicPlan.getTopicConfigPlans().size() == 1
         topicPlan.getTopicConfigPlans().first().getAction() == PlanAction.NO_CHANGE
         topicPlan.getTopicConfigPlans().first().getKey() == 'compression.type'
+    }
+
+    void 'planTopics throws ValidationException when existing topic has empty partition list'() {
+        given:
+        KafkaService kafkaService = new KafkaService(new KafkaGitopsConfig.Builder().putConfig('bootstrap.servers', 'unused').build()) {
+            @Override
+            Map<String, TopicDescription> getTopics() {
+                return ['degraded-topic': new TopicDescription('degraded-topic', false, [])]
+            }
+
+            @Override
+            Map<ConfigResource, Config> describeConfigsForTopics(List<String> topicNames) {
+                return [:]
+            }
+        }
+        PlanManager sut = new PlanManager(managerConfig(), kafkaService, new ObjectMapper())
+        DesiredState desiredState = new DesiredState.Builder()
+                .putTopics('degraded-topic', new TopicDetails.Builder()
+                        .setPartitions(3)
+                        .setReplication(2)
+                        .build())
+                .build()
+        DesiredPlan.Builder desiredPlan = new DesiredPlan.Builder()
+
+        when:
+        sut.planTopics(desiredState, desiredPlan)
+
+        then:
+        ValidationException ex = thrown()
+        ex.message.contains('degraded-topic')
+        ex.message.contains('no available partitions')
     }
 
     void 'planTopics does not describe configs for ignored topics outside desired state'() {

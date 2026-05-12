@@ -61,7 +61,7 @@ import java.io.IOException;
 
 public class StateManager {
 
-    private static org.slf4j.Logger log = LoggerFactory.getLogger(StateManager.class);
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(StateManager.class);
 
     private final ManagerConfig managerConfig;
     private final ObjectMapper objectMapper;
@@ -333,8 +333,12 @@ public class StateManager {
         Optional<Integer> defaultReplication = StateUtil.fetchReplication(desiredStateFile);
 
         desiredStateFile.getTopics().forEach((name, details) -> {
-            Integer partitions = details.getPartitions().orElseGet(defaultPartitions::get);
-            Integer replication = details.getReplication().orElseGet(defaultReplication::get);
+            Integer partitions = details.getPartitions()
+                    .or(() -> defaultPartitions)
+                    .orElseThrow(() -> new ValidationException("partitions not set for topic: " + name));
+            Integer replication = details.getReplication()
+                    .or(() -> defaultReplication)
+                    .orElseThrow(() -> new ValidationException("replication not set for topic: " + name));
 
             desiredState.putTopics(name, new TopicDetails.Builder()
                     .mergeFrom(details)
