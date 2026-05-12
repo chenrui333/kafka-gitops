@@ -52,7 +52,9 @@ public class ApplyManager {
                         kafkaService.updateTopicReplication(clusterNodes, topicPlan.getName(), topicDetailsPlan.getReplication().get());
                     }
                 }
-                topicPlan.getTopicConfigPlans().forEach(topicConfigPlan -> applyTopicConfiguration(topicPlan, topicConfigPlan));
+                topicPlan.getTopicConfigPlans().stream()
+                        .filter(c -> c.getAction() != PlanAction.NO_CHANGE)
+                        .forEach(topicConfigPlan -> applyTopicConfiguration(topicPlan, topicConfigPlan));
                 LogUtil.printPostApply();
             } else if (topicPlan.getAction() == PlanAction.REMOVE && !managerConfig.isDeleteDisabled()) {
                 LogUtil.printTopicPreApply(topicPlan);
@@ -92,7 +94,9 @@ public class ApplyManager {
             });
         });
 
-        topicPlan.getTopicConfigPlans().forEach(topicConfigPlan -> applyTopicConfiguration(topicPlan, topicConfigPlan));
+        topicPlan.getTopicConfigPlans().stream()
+                .filter(c -> c.getAction() != PlanAction.NO_CHANGE)
+                .forEach(topicConfigPlan -> applyTopicConfiguration(topicPlan, topicConfigPlan));
     }
 
     private void applyTopicConfiguration(TopicPlan topicPlan, TopicConfigPlan topicConfigPlan) {

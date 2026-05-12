@@ -13,7 +13,7 @@ class PlanCommandIntegrationSpec extends Specification {
     }
 
     void cleanupSpec() {
-//        TestUtils.cleanUpCluster()
+        TestUtils.cleanUpCluster()
     }
 
     void 'test various valid plans - #planName'() {

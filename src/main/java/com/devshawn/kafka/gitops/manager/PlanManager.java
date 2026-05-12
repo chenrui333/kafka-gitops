@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 
 public class PlanManager {
 
-    private static org.slf4j.Logger log = LoggerFactory.getLogger(PlanManager.class);
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(PlanManager.class);
 
     private final ManagerConfig managerConfig;
     private final KafkaService kafkaService;
@@ -78,7 +78,11 @@ public class PlanManager {
             } else {
                 log.info("[PLAN] Topic {} exists, it will not be created.", key);
                 TopicDescription topicDescription = topics.get(key);
-                
+
+                if (topicDescription.partitions().isEmpty()) {
+                    throw new ValidationException("Topic " + key + " has no available partitions; cluster may be degraded.");
+                }
+
                 topicPlan.setAction(PlanAction.NO_CHANGE);
                 topicDetailsPlan.setPartitions(topicDescription.partitions().size())
                     .setReplication(topicDescription.partitions().get(0).replicas().size());
@@ -254,11 +258,10 @@ public class PlanManager {
     public void writePlanToFile(DesiredPlan desiredPlan) {
         if (managerConfig.getPlanFile().isPresent()) {
             try {
-                managerConfig.getPlanFile().get().createNewFile();
                 DesiredPlan outputPlan = managerConfig.isIncludeUnchangedEnabled() ? desiredPlan : desiredPlan.toChangesOnlyPlan();
-                FileWriter writer = new FileWriter(managerConfig.getPlanFile().get());
-                writer.write(objectMapper.writeValueAsString(outputPlan));
-                writer.close();
+                try (FileWriter writer = new FileWriter(managerConfig.getPlanFile().get())) {
+                    writer.write(objectMapper.writeValueAsString(outputPlan));
+                }
             } catch (IOException ex) {
                 throw new WritePlanOutputException(ex.getMessage() + " ('" + managerConfig.getPlanFile().get() + "')");
             }
