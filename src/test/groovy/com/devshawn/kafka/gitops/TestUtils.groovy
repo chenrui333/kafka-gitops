@@ -148,6 +148,16 @@ class TestUtils {
                 return "Topic ${name} is not visible yet: ${ex.message}"
             }
         }
+        waitForCleanup("topic ${name} to have stable ISR") {
+            try {
+                def descriptions = waitFor(adminClient.describeTopics(Collections.singleton(name)).allTopicNames())
+                def partitionInfos = descriptions[name].partitions()
+                def unstable = partitionInfos.findAll { it.isr().size() < it.replicas().size() }
+                return unstable.isEmpty() ? null : "Topic ${name} has partitions with incomplete ISR: ${unstable.collect { it.partition() }}"
+            } catch (Exception ex) {
+                return "Error checking ISR stability for ${name}: ${ex.message}"
+            }
+        }
     }
 
     static void createAcl(AdminClient adminClient) {
