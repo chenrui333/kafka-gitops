@@ -1,0 +1,19 @@
+src/test/groovy/com/devshawn/kafka/gitops/TestUtils.groovy
+  s_a685b81fdf791d::t_06ae9bbe5f7dcb 151-158
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "8aa4ad77a0280b4ab557227bdd3a47f0bb319807",
+  "prompts": {},
+  "sessions": {
+    "s_a685b81fdf791d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fc65951f-b4b6-42c4-b69d-3646aeef4b7d",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Rui Chen <rui@chenrui.dev>"
+    }
+  }
+}
