@@ -148,6 +148,10 @@ class TestUtils {
                 return "Topic ${name} is not visible yet: ${ex.message}"
             }
         }
+        // Wait for all partition replicas to join the ISR before returning.
+        // Uses the full CLEANUP_ATTEMPTS budget (not TOPIC_STABILITY_CHECKS) because ISR
+        // convergence under Kafka 4.0 KRaft CI can take longer than the 3×500ms stability check.
+        // On a healthy cluster the first attempt succeeds immediately.
         waitForCleanup("topic ${name} to have stable ISR") {
             try {
                 def descriptions = waitFor(adminClient.describeTopics(Collections.singleton(name)).allTopicNames())
