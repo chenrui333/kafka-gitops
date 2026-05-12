@@ -1,0 +1,19 @@
+RELEASE.md
+  s_a685b81fdf791d::t_cac9ba414be8fd 1-63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "b54342d681b422e1c319361631949a2579983d63",
+  "prompts": {},
+  "sessions": {
+    "s_a685b81fdf791d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fc65951f-b4b6-42c4-b69d-3646aeef4b7d",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Rui Chen <rui@chenrui.dev>"
+    }
+  }
+}
