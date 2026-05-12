@@ -1,0 +1,27 @@
+src/main/java/com/devshawn/kafka/gitops/service/KafkaService.java
+  s_a685b81fdf791d::t_b62d38c38fe53b 144-146
+src/test/groovy/com/devshawn/kafka/gitops/manager/PlanManagerSpec.groovy
+  s_a685b81fdf791d::t_dcfdf983855de5 9
+  s_a685b81fdf791d::t_467b83300e57cf 307-337
+CHANGELOG.md
+  s_a685b81fdf791d::t_9cddef250417c8 1-76
+src/test/groovy/com/devshawn/kafka/gitops/service/KafkaServiceSpec.groovy
+  s_a685b81fdf791d::t_a16afe9bc73b3d 3-4
+  s_a685b81fdf791d::t_8e1a941a48be28 23-63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "5bf58f1eb2f98e40893f7edb25b03aaa8ef9c582",
+  "prompts": {},
+  "sessions": {
+    "s_a685b81fdf791d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fc65951f-b4b6-42c4-b69d-3646aeef4b7d",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Rui Chen <rui@chenrui.dev>"
+    }
+  }
+}
