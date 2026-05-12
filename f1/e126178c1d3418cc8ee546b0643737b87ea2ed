@@ -1,0 +1,43 @@
+src/main/java/com/devshawn/kafka/gitops/service/KafkaService.java
+  s_a685b81fdf791d::t_0ecc7e11571bb7 186-189
+  s_a685b81fdf791d::t_209936fc0fb179 228-231
+  s_a685b81fdf791d::t_0ab296198c261b 110-113
+  s_a685b81fdf791d::t_39a926b6620e77 95
+  s_a685b81fdf791d::t_64461fb9813bdc 45
+  s_a685b81fdf791d::t_fa5ef83bc6c955 201-204
+  s_a685b81fdf791d::t_f1e9dabe46b91b 212-214
+  s_a685b81fdf791d::t_6073b10ff618d5 70-73
+  s_a685b81fdf791d::t_93f3235f752a9d 135-139
+  s_a685b81fdf791d::t_b313066a8aa44d 59-62
+  s_a685b81fdf791d::t_f5f0b55eabf7b2 145-146,163,171,174-178
+  s_a685b81fdf791d::t_0d1132170a950c 119-120,124-128
+  s_a685b81fdf791d::t_e9003433a5476a 81-84
+src/main/java/com/devshawn/kafka/gitops/manager/PlanManager.java
+  s_a685b81fdf791d::t_1b29196d41afdb 262-264
+  s_a685b81fdf791d::t_0d8317a76afe3f 81-85
+  s_a685b81fdf791d::t_35cebbd4e83225 41
+src/main/java/com/devshawn/kafka/gitops/manager/ApplyManager.java
+  s_a685b81fdf791d::t_f0ff056b617a18 55-57
+  s_a685b81fdf791d::t_72904e45e07ee5 97-99
+src/test/groovy/com/devshawn/kafka/gitops/PlanCommandIntegrationSpec.groovy
+  s_a685b81fdf791d::t_cab3e60cb79c75 16
+src/main/java/com/devshawn/kafka/gitops/StateManager.java
+  s_a685b81fdf791d::t_0535cc32d7df74 336-341
+  s_a685b81fdf791d::t_7ea1b8663c4b6b 64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "f1e126178c1d3418cc8ee546b0643737b87ea2ed",
+  "prompts": {},
+  "sessions": {
+    "s_a685b81fdf791d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fc65951f-b4b6-42c4-b69d-3646aeef4b7d",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Rui Chen <rui@chenrui.dev>"
+    }
+  }
+}
