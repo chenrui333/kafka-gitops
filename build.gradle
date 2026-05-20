@@ -15,7 +15,7 @@ version = providers.gradleProperty('releaseVersion')
 
 def generatedResourcesDir = layout.buildDirectory.dir('generated-resources/main')
 def jacksonVersion = '2.21.3'
-def slf4jVersion = '2.0.17'
+def slf4jVersion = '2.0.18'
 def logbackVersion = '1.5.32'
 
 sourceSets {
