@@ -1,0 +1,37 @@
+src/test/groovy/com/devshawn/kafka/gitops/domain/state/CustomAclDetailsSpec.groovy
+  s_9ca827cd422a5a::t_bc352572b6e000 85,88
+src/main/java/com/devshawn/kafka/gitops/domain/state/CustomAclDetails.java
+  s_9ca827cd422a5a::t_3c30ea52da0f61 48
+  s_9ca827cd422a5a::t_4f8ce70feaeefd 19-20,38,44-47,63
+  s_9ca827cd422a5a::t_a9071926b660af 49-51
+src/test/groovy/com/devshawn/kafka/gitops/PlanCommandIntegrationSpec.groovy
+  s_9ca827cd422a5a::t_191958369628c4 215-216
+src/test/resources/plans/invalid-custom-service-acls-1-validate-output.txt
+  s_9ca827cd422a5a::t_bc352572b6e000 1
+src/test/groovy/com/devshawn/kafka/gitops/ValidateCommandIntegrationSpec.groovy
+  s_9ca827cd422a5a::t_bc352572b6e000 66-67
+docs/specification.md
+  s_9ca827cd422a5a::t_a3a4b58fe25bb9 269-270,294-297
+src/test/resources/plans/invalid-custom-user-acls-match-pattern-output.txt
+  s_9ca827cd422a5a::t_191958369628c4 1
+src/test/resources/plans/invalid-custom-user-acls-match-pattern.yaml
+  s_9ca827cd422a5a::t_bc352572b6e000 1-13
+src/test/resources/plans/invalid-custom-user-acls-match-pattern-validate-output.txt
+  s_9ca827cd422a5a::t_bc352572b6e000 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "a074b39570d70b275518e2ca8b2f3c30c5676c37",
+  "prompts": {},
+  "sessions": {
+    "s_9ca827cd422a5a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6276-0bbc-74f3-955e-c29bea5bd2e3",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Rui Chen <rui@chenrui.dev>"
+    }
+  }
+}
