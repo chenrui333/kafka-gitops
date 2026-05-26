@@ -212,7 +212,8 @@ class PlanCommandIntegrationSpec extends Specification {
                 "invalid-topic-whitelist",
                 "invalid-default-replication-1",
                 "invalid-default-replication-2",
-                "invalid-topic-remove-partitions"
+                "invalid-topic-remove-partitions",
+                "invalid-custom-user-acls-match-pattern"
         ]
     }
 
