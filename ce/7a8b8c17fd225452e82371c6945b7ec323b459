@@ -1,0 +1,29 @@
+src/test/groovy/com/devshawn/kafka/gitops/ApplyCommandIntegrationSpec.groovy
+  s_9ca827cd422a5a::t_1f02ee080067c4 48
+src/test/resources/plans/custom-user-prefixed-topic-delete-acls.yaml
+  s_9ca827cd422a5a::t_1f02ee080067c4 1-55
+src/test/groovy/com/devshawn/kafka/gitops/PlanCommandIntegrationSpec.groovy
+  s_9ca827cd422a5a::t_1f02ee080067c4 53
+src/test/groovy/com/devshawn/kafka/gitops/domain/state/CustomAclDetailsSpec.groovy
+  s_9ca827cd422a5a::t_1f02ee080067c4 35
+src/test/resources/plans/custom-user-prefixed-topic-delete-acls-plan.json
+  s_9ca827cd422a5a::t_f1f926a380953a 1-96
+src/test/resources/plans/custom-user-prefixed-topic-delete-acls-apply-output.txt
+  s_9ca827cd422a5a::t_f1f926a380953a 1-101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "ce7a8b8c17fd225452e82371c6945b7ec323b459",
+  "prompts": {},
+  "sessions": {
+    "s_9ca827cd422a5a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6276-0bbc-74f3-955e-c29bea5bd2e3",
+        "model": "gpt-5.5"
+      },
+      "human_author": null
+    }
+  }
+}
