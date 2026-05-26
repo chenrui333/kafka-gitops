@@ -1,0 +1,19 @@
+src/test/resources/plans/invalid-custom-user-acls-match-pattern-output.txt
+  s_9ca827cd422a5a::t_d99709d9c0fcb1 1-2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "a785b866b23a49a0982b9659fd3e2a0410942bd0",
+  "prompts": {},
+  "sessions": {
+    "s_9ca827cd422a5a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6276-0bbc-74f3-955e-c29bea5bd2e3",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Rui Chen <rui@chenrui.dev>"
+    }
+  }
+}
