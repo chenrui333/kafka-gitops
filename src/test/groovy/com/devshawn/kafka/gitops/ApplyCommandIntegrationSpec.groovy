@@ -45,6 +45,7 @@ class ApplyCommandIntegrationSpec extends Specification {
                 "simple-users",
                 "custom-service-acls",
                 "custom-user-acls",
+                "custom-user-prefixed-topic-delete-acls",
                 "custom-group-id-application",
                 "custom-group-id-connect",
                 "custom-application-id-streams",

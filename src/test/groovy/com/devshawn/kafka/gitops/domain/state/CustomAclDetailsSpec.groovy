@@ -32,6 +32,7 @@ class CustomAclDetailsSpec extends Specification {
         where:
         type                        | pattern                     | operation                    | permission
         ResourceType.TOPIC.name()   | PatternType.LITERAL.name()  | AclOperation.READ.name()     | AclPermissionType.ALLOW.name()
+        ResourceType.TOPIC.name()   | PatternType.PREFIXED.name() | AclOperation.DELETE.name()   | AclPermissionType.ALLOW.name()
         ResourceType.CLUSTER.name() | PatternType.PREFIXED.name() | AclOperation.WRITE.name()    | AclPermissionType.DENY.name()
         ResourceType.GROUP.name()   | PatternType.LITERAL.name()  | AclOperation.CREATE.name()   | AclPermissionType.ALLOW.name()
         ResourceType.GROUP.name()   | PatternType.LITERAL.name()  | AclOperation.DESCRIBE.name() | AclPermissionType.DENY.name()

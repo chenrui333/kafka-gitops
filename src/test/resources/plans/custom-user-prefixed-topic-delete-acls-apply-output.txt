@@ -1,0 +1,101 @@
+Executing apply...
+
+Applying: [CREATE]
+
++ [ACL] topic-reset-user-0
+	 + resource_name: events_reset_
+	 + resource_type: TOPIC
+	 + resource_pattern: PREFIXED
+	 + resource_principal: User:topic-reset
+	 + host: *
+	 + operation: CREATE
+	 + permission: ALLOW
+
+
+Successfully applied.
+
+Applying: [CREATE]
+
++ [ACL] topic-reset-user-1
+	 + resource_name: events_reset_
+	 + resource_type: TOPIC
+	 + resource_pattern: PREFIXED
+	 + resource_principal: User:topic-reset
+	 + host: *
+	 + operation: WRITE
+	 + permission: ALLOW
+
+
+Successfully applied.
+
+Applying: [CREATE]
+
++ [ACL] topic-reset-user-2
+	 + resource_name: events_reset_
+	 + resource_type: TOPIC
+	 + resource_pattern: PREFIXED
+	 + resource_principal: User:topic-reset
+	 + host: *
+	 + operation: READ
+	 + permission: ALLOW
+
+
+Successfully applied.
+
+Applying: [CREATE]
+
++ [ACL] topic-reset-user-3
+	 + resource_name: events_reset_
+	 + resource_type: TOPIC
+	 + resource_pattern: PREFIXED
+	 + resource_principal: User:topic-reset
+	 + host: *
+	 + operation: DESCRIBE
+	 + permission: ALLOW
+
+
+Successfully applied.
+
+Applying: [CREATE]
+
++ [ACL] topic-reset-user-4
+	 + resource_name: events_reset_
+	 + resource_type: TOPIC
+	 + resource_pattern: PREFIXED
+	 + resource_principal: User:topic-reset
+	 + host: *
+	 + operation: ALTER_CONFIGS
+	 + permission: ALLOW
+
+
+Successfully applied.
+
+Applying: [CREATE]
+
++ [ACL] topic-reset-user-5
+	 + resource_name: events_reset_
+	 + resource_type: TOPIC
+	 + resource_pattern: PREFIXED
+	 + resource_principal: User:topic-reset
+	 + host: *
+	 + operation: DESCRIBE_CONFIGS
+	 + permission: ALLOW
+
+
+Successfully applied.
+
+Applying: [CREATE]
+
++ [ACL] topic-reset-user-6
+	 + resource_name: events_reset_
+	 + resource_type: TOPIC
+	 + resource_pattern: PREFIXED
+	 + resource_principal: User:topic-reset
+	 + host: *
+	 + operation: DELETE
+	 + permission: ALLOW
+
+
+Successfully applied.
+
+[SUCCESS] Apply complete! Resources: 7 created, 0 updated, 0 deleted.

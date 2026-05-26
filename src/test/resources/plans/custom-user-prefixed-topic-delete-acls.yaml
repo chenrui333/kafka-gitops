@@ -1,0 +1,55 @@
+users:
+  topic-reset-user:
+    principal: User:topic-reset
+
+customUserAcls:
+  topic-reset-user:
+    create-prefixed-topics:
+      name: events_reset_
+      type: TOPIC
+      pattern: PREFIXED
+      host: "*"
+      operation: CREATE
+      permission: ALLOW
+    write-prefixed-topics:
+      name: events_reset_
+      type: TOPIC
+      pattern: PREFIXED
+      host: "*"
+      operation: WRITE
+      permission: ALLOW
+    read-prefixed-topics:
+      name: events_reset_
+      type: TOPIC
+      pattern: PREFIXED
+      host: "*"
+      operation: READ
+      permission: ALLOW
+    describe-prefixed-topics:
+      name: events_reset_
+      type: TOPIC
+      pattern: PREFIXED
+      host: "*"
+      operation: DESCRIBE
+      permission: ALLOW
+    alter-configs-prefixed-topics:
+      name: events_reset_
+      type: TOPIC
+      pattern: PREFIXED
+      host: "*"
+      operation: ALTER_CONFIGS
+      permission: ALLOW
+    describe-configs-prefixed-topics:
+      name: events_reset_
+      type: TOPIC
+      pattern: PREFIXED
+      host: "*"
+      operation: DESCRIBE_CONFIGS
+      permission: ALLOW
+    delete-prefixed-topics:
+      name: events_reset_
+      type: TOPIC
+      pattern: PREFIXED
+      host: "*"
+      operation: DELETE
+      permission: ALLOW
