@@ -1,0 +1,23 @@
+CHANGELOG.md
+  s_9ca827cd422a5a::t_a8adddbba66d24 8-10,12-13,15,79-81
+  s_9ca827cd422a5a::t_66ae5b699cb12d 11,14
+release-notes/0.5.3.md
+  s_9ca827cd422a5a::t_a8adddbba66d24 1-2,4-6,8-10
+  s_9ca827cd422a5a::t_66ae5b699cb12d 3,7,11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "bec91f37ce6f447623541cfcb3b8d1efc715dacd",
+  "prompts": {},
+  "sessions": {
+    "s_9ca827cd422a5a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6276-0bbc-74f3-955e-c29bea5bd2e3",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Rui Chen <rui@chenrui.dev>"
+    }
+  }
+}
