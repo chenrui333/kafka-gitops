@@ -82,10 +82,10 @@ class CustomAclDetailsSpec extends Specification {
         InvalidAclDefinitionException ex = thrown(InvalidAclDefinitionException)
         ex.getField() == "pattern"
         ex.getValue() == input
-        ex.getAllowedValues() == ["MATCH", "LITERAL", "PREFIXED"]
+        ex.getAllowedValues() == ["LITERAL", "PREFIXED"]
 
         where:
-        input << ["ANY", "UNKNOWN", "not real", "PREFIX", "prefixed", "topic"]
+        input << ["ANY", "UNKNOWN", "MATCH", "not real", "PREFIX", "prefixed", "topic"]
     }
 
     void 'test invalid custom acl details - operation - #input'() {

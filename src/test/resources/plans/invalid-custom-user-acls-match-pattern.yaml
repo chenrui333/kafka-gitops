@@ -1,0 +1,13 @@
+users:
+  test-user:
+    principal: User:test
+
+customUserAcls:
+  test-user:
+    delete-rna-cdc-topics:
+      name: rna_cdc_
+      type: TOPIC
+      pattern: MATCH
+      host: "*"
+      operation: DELETE
+      permission: ALLOW

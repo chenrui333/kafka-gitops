@@ -63,7 +63,8 @@ class ValidateCommandIntegrationSpec extends Specification {
                 "invalid-custom-service-acls-1",
                 "invalid-custom-service-acls-2",
                 "invalid-custom-user-acls-1",
-                "invalid-custom-user-acls-2"
+                "invalid-custom-user-acls-2",
+                "invalid-custom-user-acls-match-pattern"
         ]
     }
 }

@@ -266,6 +266,8 @@ customServiceAcls:
 
     When using Confluent Cloud, the `customServiceAcls` key must still match a service defined under `services`, and that service name must match the existing Confluent Cloud service account name. The `principal` value in the custom ACL is ignored and replaced with the live service-account ID.
 
+    Custom ACL `pattern` values are limited to `LITERAL` and `PREFIXED`. Kafka's `MATCH` pattern is only valid for ACL filters and cannot be created as a concrete ACL.
+
 ## Custom User ACLs
 
 **Synopsis**: Define custom ACLs for a specific user. 
@@ -289,3 +291,7 @@ customUserAcls:
 !!! note
 
     The `principal` field can be omitted here and will be inherited from the user definition.
+
+    Custom ACL `pattern` values are limited to `LITERAL` and `PREFIXED`. Kafka's `MATCH` pattern is only valid for ACL filters and cannot be created as a concrete ACL.
+
+    A `PREFIXED` topic ACL grants permissions for matching Kafka topics, but it does not change topic reconciliation. If matching topics are created outside your desired state file, protect them with `settings.topics.blacklist.prefixed`, limit management with `settings.topics.whitelist.prefixed`, or run `plan`/`apply` with `--no-delete` when deletion planning is not intended.
