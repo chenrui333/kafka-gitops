@@ -1,0 +1,96 @@
+{
+    "topicPlans": [],
+    "aclPlans": [
+        {
+            "name": "topic-reset-user-0",
+            "aclDetails": {
+                "name": "events_reset_",
+                "type": "TOPIC",
+                "pattern": "PREFIXED",
+                "principal": "User:topic-reset",
+                "host": "*",
+                "operation": "CREATE",
+                "permission": "ALLOW"
+            },
+            "action": "ADD"
+        },
+        {
+            "name": "topic-reset-user-1",
+            "aclDetails": {
+                "name": "events_reset_",
+                "type": "TOPIC",
+                "pattern": "PREFIXED",
+                "principal": "User:topic-reset",
+                "host": "*",
+                "operation": "WRITE",
+                "permission": "ALLOW"
+            },
+            "action": "ADD"
+        },
+        {
+            "name": "topic-reset-user-2",
+            "aclDetails": {
+                "name": "events_reset_",
+                "type": "TOPIC",
+                "pattern": "PREFIXED",
+                "principal": "User:topic-reset",
+                "host": "*",
+                "operation": "READ",
+                "permission": "ALLOW"
+            },
+            "action": "ADD"
+        },
+        {
+            "name": "topic-reset-user-3",
+            "aclDetails": {
+                "name": "events_reset_",
+                "type": "TOPIC",
+                "pattern": "PREFIXED",
+                "principal": "User:topic-reset",
+                "host": "*",
+                "operation": "DESCRIBE",
+                "permission": "ALLOW"
+            },
+            "action": "ADD"
+        },
+        {
+            "name": "topic-reset-user-4",
+            "aclDetails": {
+                "name": "events_reset_",
+                "type": "TOPIC",
+                "pattern": "PREFIXED",
+                "principal": "User:topic-reset",
+                "host": "*",
+                "operation": "ALTER_CONFIGS",
+                "permission": "ALLOW"
+            },
+            "action": "ADD"
+        },
+        {
+            "name": "topic-reset-user-5",
+            "aclDetails": {
+                "name": "events_reset_",
+                "type": "TOPIC",
+                "pattern": "PREFIXED",
+                "principal": "User:topic-reset",
+                "host": "*",
+                "operation": "DESCRIBE_CONFIGS",
+                "permission": "ALLOW"
+            },
+            "action": "ADD"
+        },
+        {
+            "name": "topic-reset-user-6",
+            "aclDetails": {
+                "name": "events_reset_",
+                "type": "TOPIC",
+                "pattern": "PREFIXED",
+                "principal": "User:topic-reset",
+                "host": "*",
+                "operation": "DELETE",
+                "permission": "ALLOW"
+            },
+            "action": "ADD"
+        }
+    ]
+}
