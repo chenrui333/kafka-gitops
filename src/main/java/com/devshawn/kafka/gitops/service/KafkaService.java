@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -95,7 +96,7 @@ public class KafkaService {
             Thread.currentThread().interrupt();
             throw new KafkaExecutionException("Error thrown when attempting to create a Kafka topic", ex.getMessage());
         } catch (ExecutionException ex) {
-            if (ex.getCause() instanceof TopicExistsException) {
+            if (isTopicAlreadyExistsException(ex, topicName)) {
                 throw new TopicAlreadyExistsException(topicName, describeException(ex));
             }
             throw new KafkaExecutionException("Error thrown when attempting to create a Kafka topic", ex.getMessage());
@@ -250,5 +251,24 @@ public class KafkaService {
             return failure.getMessage();
         }
         return failure.toString();
+    }
+
+    static boolean isTopicAlreadyExistsException(Throwable throwable, String topicName) {
+        String normalizedTopicName = topicName.toLowerCase(Locale.ROOT);
+        Throwable failure = throwable;
+        while (failure != null) {
+            if (failure instanceof TopicExistsException) {
+                return true;
+            }
+            String message = failure.getMessage();
+            if (message != null) {
+                String normalizedMessage = message.toLowerCase(Locale.ROOT);
+                if (normalizedMessage.contains("already exists") && normalizedMessage.contains(normalizedTopicName)) {
+                    return true;
+                }
+            }
+            failure = failure.getCause();
+        }
+        return false;
     }
 }

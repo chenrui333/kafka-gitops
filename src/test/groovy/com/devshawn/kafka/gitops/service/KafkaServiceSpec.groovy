@@ -2,7 +2,10 @@ package com.devshawn.kafka.gitops.service
 
 import com.devshawn.kafka.gitops.config.KafkaGitopsConfig
 import com.devshawn.kafka.gitops.exception.ValidationException
+import org.apache.kafka.common.errors.TopicExistsException
 import spock.lang.Specification
+
+import java.util.concurrent.ExecutionException
 
 class KafkaServiceSpec extends Specification {
 
@@ -19,6 +22,27 @@ class KafkaServiceSpec extends Specification {
     void 'describeException falls back to throwable toString when messages are blank'() {
         expect:
         KafkaService.describeException(new RuntimeException('')) == 'java.lang.RuntimeException: '
+    }
+
+    void 'isTopicAlreadyExistsException detects Kafka duplicate topic errors'() {
+        expect:
+        KafkaService.isTopicAlreadyExistsException(
+                new ExecutionException(new TopicExistsException("Topic 'my-topic' already exists.")),
+                'my-topic')
+    }
+
+    void 'isTopicAlreadyExistsException detects duplicate topic errors by message'() {
+        expect:
+        KafkaService.isTopicAlreadyExistsException(
+                new ExecutionException(new RuntimeException("Topic 'my-topic' already exists with different topic metadata.")),
+                'my-topic')
+    }
+
+    void 'isTopicAlreadyExistsException ignores unrelated already exists messages'() {
+        expect:
+        !KafkaService.isTopicAlreadyExistsException(
+                new ExecutionException(new RuntimeException("Topic 'other-topic' already exists.")),
+                'my-topic')
     }
 
     void 'updateTopicReplication throws ValidationException when replication factor is null'() {

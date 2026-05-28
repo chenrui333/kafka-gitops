@@ -295,7 +295,7 @@ class ApplyCommandIntegrationSpec extends Specification {
         int exitCode = cmd.execute('-f', stateFile, 'apply', '-p', planFile)
 
         then:
-        exitCode == 0
+        assert exitCode == 0: out.toString()
 
         then:
         def conditions = new PollingConditions(timeout: 15, initialDelay: 1, factor: 1.25)
