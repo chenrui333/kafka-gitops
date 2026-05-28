@@ -1,0 +1,23 @@
+src/main/java/com/devshawn/kafka/gitops/service/KafkaService.java
+  s_a55f34b683b109::t_d2c711cd4e7d7e 37,99,255-272
+src/test/groovy/com/devshawn/kafka/gitops/service/KafkaServiceSpec.groovy
+  s_a55f34b683b109::t_fcf20bc61d7d4f 5,8-9,27-45
+src/test/groovy/com/devshawn/kafka/gitops/ApplyCommandIntegrationSpec.groovy
+  s_a55f34b683b109::t_0dbb3cf0c65e8f 298
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "b7319767b68860065330c03872283f1c16716559",
+  "prompts": {},
+  "sessions": {
+    "s_a55f34b683b109": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e6f42-d086-79b3-ab06-6bc7cd20a7d0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Rui Chen <rui@chenrui.dev>"
+    }
+  }
+}
