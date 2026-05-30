@@ -1,0 +1,21 @@
+src/main/java/com/devshawn/kafka/gitops/manager/ApplyManager.java
+  s_690ec514d7b109::t_cb72943592915a 9,23-24,71,105-149
+src/test/groovy/com/devshawn/kafka/gitops/manager/ApplyManagerSpec.groovy
+  s_690ec514d7b109::t_651f16e756a453 7-9,12-13,15-17,20-21,24-71,122-134
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "3ba6e24a373867528644c7801620b1a4d99962c2",
+  "prompts": {},
+  "sessions": {
+    "s_690ec514d7b109": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e795b-b45e-7cb3-850a-b058a154b30c",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Rui Chen <rui@chenrui.dev>"
+    }
+  }
+}
