@@ -6,6 +6,7 @@ import com.devshawn.kafka.gitops.domain.plan.TopicConfigPlan;
 import com.devshawn.kafka.gitops.domain.plan.TopicDetailsPlan;
 import com.devshawn.kafka.gitops.domain.plan.TopicPlan;
 import com.devshawn.kafka.gitops.enums.PlanAction;
+import com.devshawn.kafka.gitops.exception.KafkaExecutionException;
 import com.devshawn.kafka.gitops.exception.TopicAlreadyExistsException;
 import com.devshawn.kafka.gitops.exception.ValidationException;
 import com.devshawn.kafka.gitops.service.KafkaService;
@@ -19,6 +20,8 @@ import org.apache.kafka.common.config.ConfigResource;
 import java.util.*;
 
 public class ApplyManager {
+    private static final int STALE_ADD_TOPIC_DESCRIBE_ATTEMPTS = 20;
+    private static final long STALE_ADD_TOPIC_DESCRIBE_RETRY_MS = 500L;
 
     private final ManagerConfig managerConfig;
     private final KafkaService kafkaService;
@@ -65,7 +68,7 @@ public class ApplyManager {
     }
 
     private void applyStaleAddTopic(TopicPlan topicPlan, Collection<Node> clusterNodes) {
-        TopicDescription currentTopic = kafkaService.getTopicDescription(Collections.singleton(topicPlan.getName())).get(topicPlan.getName());
+        TopicDescription currentTopic = describeStaleAddTopic(topicPlan);
 
         topicPlan.getTopicDetailsPlan().ifPresent(topicDetailsPlan -> {
             topicDetailsPlan.getPartitions().ifPresent(desiredPartitions -> {
@@ -97,6 +100,53 @@ public class ApplyManager {
         topicPlan.getTopicConfigPlans().stream()
                 .filter(c -> c.getAction() != PlanAction.NO_CHANGE)
                 .forEach(topicConfigPlan -> applyTopicConfiguration(topicPlan, topicConfigPlan));
+    }
+
+    private TopicDescription describeStaleAddTopic(TopicPlan topicPlan) {
+        Set<String> topicNames = Collections.singleton(topicPlan.getName());
+        KafkaExecutionException lastException = null;
+
+        for (int attempt = 1; attempt <= STALE_ADD_TOPIC_DESCRIBE_ATTEMPTS; attempt++) {
+            try {
+                TopicDescription topicDescription = kafkaService.getTopicDescription(topicNames).get(topicPlan.getName());
+                if (topicDescription != null) {
+                    return topicDescription;
+                }
+            } catch (KafkaExecutionException ex) {
+                if (!isTopicDescriptionNotReady(ex)) {
+                    throw ex;
+                }
+                lastException = ex;
+            }
+
+            if (attempt < STALE_ADD_TOPIC_DESCRIBE_ATTEMPTS) {
+                sleepBeforeRetryingStaleAddDescription();
+            }
+        }
+
+        if (lastException != null) {
+            throw lastException;
+        }
+
+        throw new ValidationException(String.format(
+                "Error thrown when attempting to apply a stale Kafka topic add plan: topic %s was not returned by Kafka topic description. Re-run plan.",
+                topicPlan.getName()));
+    }
+
+    private static boolean isTopicDescriptionNotReady(KafkaExecutionException ex) {
+        String message = String.format("%s %s", ex.getMessage(), ex.getExceptionMessage()).toLowerCase(Locale.ROOT);
+        return message.contains("unknowntopicorpartition")
+                || message.contains("unknown topic or partition")
+                || message.contains("does not host this topic-partition");
+    }
+
+    private static void sleepBeforeRetryingStaleAddDescription() {
+        try {
+            Thread.sleep(STALE_ADD_TOPIC_DESCRIBE_RETRY_MS);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new KafkaExecutionException("Error thrown when attempting to describe Kafka topics", ex.getMessage());
+        }
     }
 
     private void applyTopicConfiguration(TopicPlan topicPlan, TopicConfigPlan topicConfigPlan) {
