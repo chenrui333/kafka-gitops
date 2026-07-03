@@ -12,25 +12,34 @@ This project follows [Semantic Versioning](https://semver.org/):
 
 ### 1. Prepare release notes
 
-Create `release-notes/<version>.md` (e.g., `release-notes/0.5.2.md`).
+Create `release-notes/<version>.md`.
 
-If this file exists, the release workflow uses it verbatim. If absent, it auto-generates from `git log` since the previous tag.
+If this file exists, the release workflow uses it as the release body and appends a generated `Full Changelog` section. If absent, it auto-generates the whole body from `git log` since the previous tag.
 
-Use `release-notes/0.4.0.md` as a format reference.
+Use an existing file in `release-notes/` as a format reference.
 
 ### 2. Update CHANGELOG
 
-Move the `[Unreleased]` section to `[<version>] - <date>` in `CHANGELOG.md` and update the comparison links at the bottom.
+Move the `[Unreleased]` entries to `[<version>] - <date>` in `CHANGELOG.md`, recreate an empty `[Unreleased]` section, and update the comparison links at the bottom.
 
-### 3. Commit to main
+### 3. Validate locally
+
+```bash
+./gradlew -PreleaseVersion=<version> buildRelease
+./scripts/write_release_notes.sh <version>
+```
+
+Confirm the release zip is written to `build/distributions/kafka-gitops-<version>.zip`.
+
+### 4. Commit to main
 
 ```bash
 git add CHANGELOG.md release-notes/<version>.md
-git commit -m "chore: release <version>"
+git commit -s -m "chore: release <version>"
 git push origin main
 ```
 
-### 4. Tag and push
+### 5. Tag and push
 
 ```bash
 git tag <version>
@@ -43,9 +52,13 @@ Pushing the tag triggers the [Release workflow](.github/workflows/release.yml), 
 - Publishes the GitHub Release with the distributable ZIP
 - Builds and pushes the Docker image (requires `DOCKER_USERNAME` / `DOCKER_PASSWORD` secrets)
 
-### 5. Verify
+The tag push also triggers the Java CI workflow because that workflow runs on every push.
 
-Check the [Actions tab](https://github.com/chenrui333/kafka-gitops/actions) to confirm the release job succeeds and the GitHub Release is published.
+### 6. Verify
+
+Check the [Actions tab](https://github.com/chenrui333/kafka-gitops/actions) to confirm the Release workflow and tag-triggered Java CI both succeed.
+
+Confirm the GitHub Release is published with `kafka-gitops-<version>.zip`.
 
 ## Re-running a Release
 

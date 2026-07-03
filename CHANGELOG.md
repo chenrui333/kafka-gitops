@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [0.5.4] - 2026-07-03
+
+### Fixed
+- Treat duplicate topic creation responses as existing-topic conflicts even when Kafka returns the duplicate state through newer message variants instead of a direct `TopicExistsException`.
+- Retry stale topic descriptions while applying an add-topic plan that discovers the topic was already created, avoiding transient failures while broker metadata catches up.
+
+### Changed
+- Update `org.apache.kafka:kafka-clients` to `4.3.1`.
+- Update Jackson to `2.22.0`.
+- Update Logback through `1.5.37`.
+- Update JaCoCo to `0.8.15`.
+- Update the Gradle Shadow plugin to `8.3.11`.
+- Refresh pinned GitHub Actions for checkout, Java setup, Python setup, Docker login, and Docker build/push.
+
 ## [0.5.3] - 2026-05-26
 
 ### Fixed
@@ -76,7 +92,8 @@ See [0.3.0...0.3.1](https://github.com/chenrui333/kafka-gitops/compare/0.3.0...0
 
 Initial tracked release.
 
-[Unreleased]: https://github.com/chenrui333/kafka-gitops/compare/0.5.3...HEAD
+[Unreleased]: https://github.com/chenrui333/kafka-gitops/compare/0.5.4...HEAD
+[0.5.4]: https://github.com/chenrui333/kafka-gitops/compare/0.5.3...0.5.4
 [0.5.3]: https://github.com/chenrui333/kafka-gitops/compare/0.5.2...0.5.3
 [0.5.2]: https://github.com/chenrui333/kafka-gitops/compare/0.5.1...0.5.2
 [0.5.1]: https://github.com/chenrui333/kafka-gitops/compare/0.5.0...0.5.1
