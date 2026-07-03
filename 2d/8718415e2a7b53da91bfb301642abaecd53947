@@ -1,0 +1,19 @@
+release-notes/0.5.4.md
+  s_6611bc99c92a7a::t_c9fa726fdb8f2a 1-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.9",
+  "base_commit_sha": "2d8718415e2a7b53da91bfb301642abaecd53947",
+  "prompts": {},
+  "sessions": {
+    "s_6611bc99c92a7a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f28c1-2576-7080-bac5-0dd8ddcc5c84",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Rui Chen <rui@chenrui.dev>"
+    }
+  }
+}
