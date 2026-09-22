@@ -1,0 +1,21 @@
+CHANGELOG.md
+  s_564329db5a3670::t_3190efba0b78b2 10-18,104-105
+release-notes/0.5.5.md
+  s_564329db5a3670::t_2a95d9ece17bac 1-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "021604f3c14af401c1228f57455475703260c415",
+  "prompts": {},
+  "sessions": {
+    "s_564329db5a3670": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0c788-661a-7fe3-aeee-40dbe080c603",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Rui Chen <rui@chenrui.dev>"
+    }
+  }
+}
