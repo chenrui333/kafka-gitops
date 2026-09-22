@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.5] - 2026-09-22
+
+### Changed
+- Update Jackson to `2.22.2`.
+- Update SLF4J to `2.0.19`.
+- Update Logback to `1.6.3`.
+- Update the Groovy test dependency to `4.0.33`.
+- Refresh pinned GitHub Actions for checkout, Java setup, Docker login, and Docker build/push.
+
 ## [0.5.4] - 2026-07-03
 
 ### Fixed
@@ -92,7 +101,8 @@ See [0.3.0...0.3.1](https://github.com/chenrui333/kafka-gitops/compare/0.3.0...0
 
 Initial tracked release.
 
-[Unreleased]: https://github.com/chenrui333/kafka-gitops/compare/0.5.4...HEAD
+[Unreleased]: https://github.com/chenrui333/kafka-gitops/compare/0.5.5...HEAD
+[0.5.5]: https://github.com/chenrui333/kafka-gitops/compare/0.5.4...0.5.5
 [0.5.4]: https://github.com/chenrui333/kafka-gitops/compare/0.5.3...0.5.4
 [0.5.3]: https://github.com/chenrui333/kafka-gitops/compare/0.5.2...0.5.3
 [0.5.2]: https://github.com/chenrui333/kafka-gitops/compare/0.5.1...0.5.2
