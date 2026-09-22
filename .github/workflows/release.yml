@@ -15,7 +15,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: release-${{ inputs.tag || github.ref_name }}
+  group: release-publication
   cancel-in-progress: false
 
 jobs:
@@ -106,6 +106,17 @@ jobs:
       - name: Generate release notes body
         run: ./scripts/write_release_notes.sh "$RELEASE_VERSION" > build/release-notes.md
 
+      - name: Verify tag still matches tested commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_SHA: ${{ needs.resolve.outputs.sha }}
+        run: |
+          actual_sha=$(gh api "repos/${GITHUB_REPOSITORY}/commits/refs/tags/${RELEASE_VERSION}" --jq .sha)
+          if [ "$actual_sha" != "$EXPECTED_SHA" ]; then
+            echo "Release tag no longer points to the verified commit" >&2
+            exit 1
+          fi
+
       - name: Log in to Docker Hub
         if: ${{ env.DOCKER_USERNAME != '' && env.DOCKER_PASSWORD != '' }}
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
@@ -122,6 +133,17 @@ jobs:
           tags: |
             devshawn/kafka-gitops:${{ needs.resolve.outputs.version }}
             devshawn/kafka-gitops:latest
+
+      - name: Verify tag still matches tested commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_SHA: ${{ needs.resolve.outputs.sha }}
+        run: |
+          actual_sha=$(gh api "repos/${GITHUB_REPOSITORY}/commits/refs/tags/${RELEASE_VERSION}" --jq .sha)
+          if [ "$actual_sha" != "$EXPECTED_SHA" ]; then
+            echo "Release tag no longer points to the verified commit" >&2
+            exit 1
+          fi
 
       - name: Publish release
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
