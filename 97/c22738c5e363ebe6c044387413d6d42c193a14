@@ -1,0 +1,23 @@
+.github/workflows/gradle.yml
+  s_564329db5a3670::t_71923255d4e18b 3-15,28,52
+.github/workflows/release.yml
+  s_564329db5a3670::t_24a3ef01bb63fd 15-19,22-76,79,81-83,85,92,94,104,107,123,129-130,133
+RELEASE.md
+  s_564329db5a3670::t_9963523fbce613 50-51,57,61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "97c22738c5e363ebe6c044387413d6d42c193a14",
+  "prompts": {},
+  "sessions": {
+    "s_564329db5a3670": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0c788-661a-7fe3-aeee-40dbe080c603",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Rui Chen <rui@chenrui.dev>"
+    }
+  }
+}
