@@ -175,18 +175,22 @@ class ApplyCommandIntegrationSpec extends Specification {
         then:
         exitCode == 0
 
+        when:
         // Reassignment acceptance does not guarantee every broker has updated its metadata.
-        new PollingConditions(timeout: 30, factor: 1.25).eventually {
-            def topicDescriptions = TestUtils.withAdminClient { adminClient ->
-                TestUtils.waitFor(adminClient.describeTopics(['topic-with-configs-1', 'topic-with-configs-2'] as Set).allTopicNames())
-            }
-            ['topic-with-configs-1', 'topic-with-configs-2'].each { topic ->
-                def replicaCounts = topicDescriptions[topic].partitions().collectEntries {
-                    [(it.partition()): it.replicas().size()]
+        TestUtils.withAdminClient { adminClient ->
+            new PollingConditions(timeout: 30, factor: 1.25).eventually {
+                def topicDescriptions = TestUtils.waitFor(adminClient.describeTopics(['topic-with-configs-1', 'topic-with-configs-2'] as Set).allTopicNames())
+                ['topic-with-configs-1', 'topic-with-configs-2'].each { topic ->
+                    def replicaCounts = topicDescriptions[topic].partitions().collectEntries {
+                        [(it.partition()): it.replicas().size()]
+                    }
+                    assert replicaCounts.values().every { it == 1 } : "${topic} replica counts by partition: ${replicaCounts}"
                 }
-                assert replicaCounts.values().every { it == 1 } : "${topic} replica counts by partition: ${replicaCounts}"
             }
         }
+
+        then:
+        noExceptionThrown()
     }
 
     void 'test apply sets retention.ms and retention.bytes on topic with no retention config'() {
