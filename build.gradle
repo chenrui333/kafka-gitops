@@ -38,13 +38,15 @@ repositories {
     mavenCentral()
 }
 
+def releaseVersion = project.version.toString()
 def writeVersionProperties = tasks.register('writeVersionProperties') {
+    inputs.property('releaseVersion', releaseVersion)
     outputs.file(generatedResourcesDir.map { it.file('kafka-gitops-version.properties') })
 
     doLast {
         File outputFile = generatedResourcesDir.get().file('kafka-gitops-version.properties').asFile
         outputFile.parentFile.mkdirs()
-        outputFile.text = "version=${project.version}\n"
+        outputFile.text = "version=${releaseVersion}\n"
     }
 }
 
