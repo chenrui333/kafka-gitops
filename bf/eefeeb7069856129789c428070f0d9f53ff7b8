@@ -1,0 +1,19 @@
+src/test/groovy/com/devshawn/kafka/gitops/ApplyCommandIntegrationSpec.groovy
+  s_564329db5a3670::t_8c8ca4bf726291 178,180-187,191-193
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "bfeefeeb7069856129789c428070f0d9f53ff7b8",
+  "prompts": {},
+  "sessions": {
+    "s_564329db5a3670": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0c788-661a-7fe3-aeee-40dbe080c603",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Rui Chen <rui@chenrui.dev>"
+    }
+  }
+}
