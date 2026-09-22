@@ -37,7 +37,7 @@ Documentation on how to install and use this tool can be found on our [documenta
 
 ## Compatibility
 
-The Gradle build targets JDK 21 and `kafka-clients` 4.2.0.
+The Gradle build targets JDK 21. See [`build.gradle`](build.gradle) for the current Kafka client version.
 
 Broker compatibility is validated by the automated test fixtures against:
 

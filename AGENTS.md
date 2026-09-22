@@ -10,7 +10,7 @@ Keep changes small, test-backed, and scoped to one behavior or maintenance conce
 
 - Java: JDK 21
 - Build: Gradle wrapper (`./gradlew`)
-- Compatibility baseline: `kafka-clients` 4.2.0, validated against Kafka 3.9-compatible and Kafka 4-compatible broker fixtures
+- Kafka client version: see `build.gradle`; compatibility is validated against Kafka 3.9-compatible and Kafka 4-compatible broker fixtures
 - Local Kafka fixture:
   - Kafka 3.9 broker lane: `docker compose -f docker/docker-compose.yml up -d`
   - Kafka 4 broker lane: `docker compose -f docker/docker-compose.kafka4.yml up -d`
@@ -55,7 +55,7 @@ Keep changes small, test-backed, and scoped to one behavior or maintenance conce
 - When changing planning or apply behavior, update the matching JSON/YAML fixtures and add focused regression coverage in Spock.
 - Deduplicate generated ACLs in desired-state construction when different generation paths can produce the same binding.
 - Use unique temp files in tests instead of shared `/tmp/plan.json` paths so repeated and parallel runs do not collide.
-- Keep dependency review automation in place; if you change the Gradle or Actions surface, update `.github/dependabot.yml` deliberately rather than letting it drift.
+- Dependency updates are managed by `renovate.json`. Keep its enabled managers and package rules aligned with changes to the Gradle or GitHub Actions surface.
 - Integration-style tests assume the local Kafka fixture is running and may mutate cluster state; use `TestUtils.cleanUpCluster()` / `seedCluster()` patterns consistently.
 - Schema Registry support is add/update only; do not introduce subject deletion behavior without an explicit user ask and matching test coverage.
 

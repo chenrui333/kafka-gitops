@@ -23,7 +23,7 @@ The tool also generates the ACLs needed for common Kafka application types. By d
 
 ## Compatibility
 
-The Gradle build targets JDK 21 and `kafka-clients` 4.2.0.
+The Gradle build targets JDK 21. See [`build.gradle`](https://github.com/chenrui333/kafka-gitops/blob/main/build.gradle) for the current Kafka client version.
 
 Broker compatibility is validated against two local and CI fixtures:
 
