@@ -12,35 +12,86 @@ on:
         type: string
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
 
 jobs:
+  resolve:
+    name: Resolve release target
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      sha: ${{ steps.target.outputs.sha }}
+      version: ${{ steps.target.outputs.version }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ format('refs/tags/{0}', inputs.tag || github.ref_name) }}
+          persist-credentials: false
+      - name: Record immutable target
+        id: target
+        env:
+          RELEASE_VERSION: ${{ inputs.tag || github.ref_name }}
+        run: |
+          git check-ref-format "refs/tags/${RELEASE_VERSION}"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "version=${RELEASE_VERSION}" >> "$GITHUB_OUTPUT"
+
+  verify:
+    name: Verify (${{ matrix.broker_label }})
+    needs: resolve
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - broker_label: kafka39
+            compose_file: docker/docker-compose.yml
+          - broker_label: kafka40
+            compose_file: docker/docker-compose.kafka4.yml
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          persist-credentials: false
+      - name: Set up JDK 21
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+      - name: Start docker compose for integration tests
+        run: docker compose -f "${{ matrix.compose_file }}" up -d
+      - name: Build and test release target
+        env:
+          RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
+        run: ./gradlew --info -PreleaseVersion="$RELEASE_VERSION" build
+      - name: Stop docker compose
+        if: always()
+        run: docker compose -f "${{ matrix.compose_file }}" down -v
+
   build:
     name: Build Release
+    needs: [resolve, verify]
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
     env:
+      RELEASE_VERSION: ${{ needs.resolve.outputs.version }}
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
     steps:
-      - name: Resolve release target
-        id: release_target
-        run: |
-          version="${GITHUB_REF#refs/tags/}"
-          ref="${GITHUB_REF}"
-
-          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
-            version="${{ inputs.tag }}"
-            ref="refs/tags/${version}"
-          fi
-
-          echo "version=${version}" >> "$GITHUB_OUTPUT"
-          echo "ref=${ref}" >> "$GITHUB_OUTPUT"
-
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
-          ref: ${{ steps.release_target.outputs.ref }}
+          ref: ${{ needs.resolve.outputs.sha }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up JDK 21
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
@@ -50,10 +101,10 @@ jobs:
           cache: gradle
 
       - name: Build with Gradle
-        run: ./gradlew -PreleaseVersion="${{ steps.release_target.outputs.version }}" buildRelease
+        run: ./gradlew -PreleaseVersion="$RELEASE_VERSION" buildRelease
 
       - name: Generate release notes body
-        run: ./scripts/write_release_notes.sh "${{ steps.release_target.outputs.version }}" > build/release-notes.md
+        run: ./scripts/write_release_notes.sh "$RELEASE_VERSION" > build/release-notes.md
 
       - name: Log in to Docker Hub
         if: ${{ env.DOCKER_USERNAME != '' && env.DOCKER_PASSWORD != '' }}
@@ -69,15 +120,15 @@ jobs:
           context: .
           push: true
           tags: |
-            devshawn/kafka-gitops:${{ steps.release_target.outputs.version }}
+            devshawn/kafka-gitops:${{ needs.resolve.outputs.version }}
             devshawn/kafka-gitops:latest
 
       - name: Publish release
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
-          tag_name: ${{ steps.release_target.outputs.version }}
-          name: Release ${{ steps.release_target.outputs.version }}
+          tag_name: ${{ needs.resolve.outputs.version }}
+          name: Release ${{ needs.resolve.outputs.version }}
           body_path: ./build/release-notes.md
           fail_on_unmatched_files: true
-          files: ./build/distributions/kafka-gitops-${{ steps.release_target.outputs.version }}.zip
+          files: ./build/distributions/kafka-gitops-${{ needs.resolve.outputs.version }}.zip
           make_latest: "true"

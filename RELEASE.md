@@ -47,16 +47,18 @@ git push origin <version>
 ```
 
 Pushing the tag triggers the [Release workflow](.github/workflows/release.yml), which:
+- Resolves the tag to a commit and verifies that exact commit against both Kafka broker fixtures
+- Allows the publication job to run only after both verification lanes pass
 - Builds the shadow JAR with `-PreleaseVersion=<version>`
 - Generates release notes from `release-notes/<version>.md` (or `git log`)
 - Publishes the GitHub Release with the distributable ZIP
 - Builds and pushes the Docker image (requires `DOCKER_USERNAME` / `DOCKER_PASSWORD` secrets)
 
-The tag push also triggers the Java CI workflow because that workflow runs on every push.
+Ordinary Java CI runs for pull requests targeting `main`, pushes to `main`, and manual dispatches. Tag pushes are tested by the Release workflow. Manual releases resolve and verify the requested existing tag, not the workflow branch.
 
 ### 6. Verify
 
-Check the [Actions tab](https://github.com/chenrui333/kafka-gitops/actions) to confirm the Release workflow and tag-triggered Java CI both succeed.
+Check the [Actions tab](https://github.com/chenrui333/kafka-gitops/actions) to confirm the Release workflow, including both Kafka verification lanes, succeeds.
 
 Confirm the GitHub Release is published with `kafka-gitops-<version>.zip`.
 

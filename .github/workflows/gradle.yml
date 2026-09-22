@@ -1,6 +1,18 @@
 name: Java CI
 
-on: push
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: java-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -13,6 +25,7 @@ jobs:
           - broker_label: kafka40
             compose_file: docker/docker-compose.kafka4.yml
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     name: build (${{ matrix.broker_label }})
 
     steps:
@@ -36,7 +49,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: kafka-gitops-${{ matrix.broker_label }}.jar
-          path: build/libs/kafka-gitops-all.jar
+          path: build/libs/kafka-gitops-*-all.jar
 
       - name: Stop docker compose
         if: always()
