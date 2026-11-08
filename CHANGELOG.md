@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.7] - 2026-11-08
+
+### Changed
+- Update Jackson to `2.23.0`.
+- Update the Gradle Shadow plugin to `9.6.1`.
+- Update the Groovy test dependency to `6.0.0` and the JUnit Platform launcher to `6.1.3`.
+- Run CI and release builds on JDK 25; the Gradle toolchain still targets Java 21.
+- Update pinned GitHub Actions to checkout v7, setup-java v6, setup-python v7, configure-pages v6, upload-pages-artifact v5, deploy-pages v5, action-gh-release v3, and docker/login-action v4.8.0.
+- Raise the Renovate open-PR limit to 30.
+
 ## [0.5.6] - 2026-11-08
 
 ### Changed
@@ -114,7 +124,8 @@ See [0.3.0...0.3.1](https://github.com/chenrui333/kafka-gitops/compare/0.3.0...0
 
 Initial tracked release.
 
-[Unreleased]: https://github.com/chenrui333/kafka-gitops/compare/0.5.6...HEAD
+[Unreleased]: https://github.com/chenrui333/kafka-gitops/compare/0.5.7...HEAD
+[0.5.7]: https://github.com/chenrui333/kafka-gitops/compare/0.5.6...0.5.7
 [0.5.6]: https://github.com/chenrui333/kafka-gitops/compare/0.5.5...0.5.6
 [0.5.5]: https://github.com/chenrui333/kafka-gitops/compare/0.5.4...0.5.5
 [0.5.4]: https://github.com/chenrui333/kafka-gitops/compare/0.5.3...0.5.4
