@@ -1,0 +1,16 @@
+CHANGELOG.md
+  h_9df9c32c3f321d 10-22,117-118
+release-notes/0.5.6.md
+  h_9df9c32c3f321d 1-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6173301688845da0d4a4844123c1b1e88c5bce6c",
+  "prompts": {},
+  "humans": {
+    "h_9df9c32c3f321d": {
+      "author": "Rui Chen <rui@chenrui.dev>"
+    }
+  }
+}
