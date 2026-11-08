@@ -7,6 +7,7 @@
   "enabledManagers": ["gradle", "github-actions"],
   "separateMinorPatch": true,
   "minimumReleaseAge": "7 days",
+  "prConcurrentLimit": 30,
   "automerge": true,
   "automergeType": "pr",
   "platformAutomerge": true,
