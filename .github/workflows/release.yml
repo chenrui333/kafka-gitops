@@ -62,7 +62,7 @@ jobs:
         uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: "25"
           cache: gradle
       - name: Start docker compose for integration tests
         run: docker compose -f "${{ matrix.compose_file }}" up -d
@@ -97,7 +97,7 @@ jobs:
         uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: "25"
           cache: gradle
 
       - name: Build with Gradle
