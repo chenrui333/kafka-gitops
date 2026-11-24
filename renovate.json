@@ -3,7 +3,9 @@
   "extends": [
     "config:best-practices"
   ],
-  "dependencyDashboard": true,
+  "dependencyDashboard": {
+    "enabled": true
+  },
   "enabledManagers": ["gradle", "github-actions"],
   "separateMinorPatch": true,
   "minimumReleaseAge": "7 days",
